@@ -1,0 +1,15 @@
+/* src/components/InfoModal.css */
+/* Можно импортировать стили из LoginModal или создать отдельно */
+.info-modal {
+  max-width: 500px; /* Чуть шире для информации */
+}
+
+.info-content {
+  padding: 10px 0;
+}
+
+.info-content p {
+  margin: 0;
+  color: #666;
+  line-height: 1.5;
+}
