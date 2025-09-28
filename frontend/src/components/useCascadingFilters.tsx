@@ -270,8 +270,8 @@ function buildSets(ms: Match[]) {
     s.oneOs.add(m.one_o.toFixed(2)); s.oneEs.add(m.one_e.toFixed(2));
     s.xOs.add(m.x_o.toFixed(2)); s.xEs.add(m.x_e.toFixed(2));
     s.twoOs.add(m.two_o.toFixed(2)); s.twoEs.add(m.two_e.toFixed(2));
-    s.btsOs.add(m.bts_o.toFixed(2)); s.btsEs.add(m.bts_e.toFixed(2));
-    s.btsNoOs.add(m.bts_no_o.toFixed(2)); s.btsNoEs.add(m.bts_no_e.toFixed(2));
+    s.btsOs.add((m.bts_o || 0).toFixed(2)); s.btsEs.add((m.bts_e || 0).toFixed(2));
+    s.btsNoOs.add((m.bts_no_o || 0).toFixed(2)); s.btsNoEs.add((m.bts_no_e || 0).toFixed(2));
     s.overOs.add(m.over_o.toFixed(2)); s.overEs.add(m.over_e.toFixed(2));
     s.underOs.add(m.under_o.toFixed(2)); s.underEs.add(m.under_e.toFixed(2));
     if (m.first_half) s.firstHalfs.add(m.first_half);

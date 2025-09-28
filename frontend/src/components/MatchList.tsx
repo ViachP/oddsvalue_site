@@ -599,10 +599,10 @@ export default function MatchList() {
                   <td style={cellStyle}>{match.x_e.toFixed(2)}</td>
                   <td style={cellStyle}>{match.two_o.toFixed(2)}</td>
                   <td style={cellStyle}>{match.two_e.toFixed(2)}</td>
-                  <td style={cellStyle}>{match.bts_o.toFixed(2)}</td>
-                  <td style={cellStyle}>{match.bts_e.toFixed(2)}</td>
-                  <td style={cellStyle}>{match.bts_no_o.toFixed(2)}</td>
-                  <td style={cellStyle}>{match.bts_no_e.toFixed(2)}</td>
+                  <td style={cellStyle}>{(match.bts_o || 0).toFixed(2)}</td>
+                  <td style={cellStyle}>{(match.bts_e || 0).toFixed(2)}</td>
+                  <td style={cellStyle}>{(match.bts_no_o || 0).toFixed(2)}</td>
+                  <td style={cellStyle}>{(match.bts_no_e || 0).toFixed(2)}</td>
                   <td style={cellStyle}>{match.over_o.toFixed(2)}</td>
                   <td style={cellStyle}>{match.over_e.toFixed(2)}</td>
                   <td style={cellStyle}>{match.under_o.toFixed(2)}</td>
