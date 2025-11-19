@@ -1,0 +1,76 @@
+/* === тот же набор классов, что и PaymentModal.css === */
+.pay-modal-overlay{
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.8);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+.pay-modal-box{
+  background: #1e1e1e; color: #f0f0f0;
+  border-radius: 8px;
+  padding: 32px 36px; min-width: 400px; max-width: 90vw;
+  font-size: 18px; position: relative;
+  box-shadow: 0 8px 30px rgba(0,0,0,.6);
+}
+.pay-modal-close{
+  position: absolute; right: 14px; top: 14px;
+  background: none; border: none; color: #f0f0f0;
+  font-size: 24px; cursor: pointer; line-height: 1;
+}
+.pay-modal-title{
+  margin: 0 0 24px; font-size: 22px; font-weight: 600;
+  color: #FFC107;              /* жёлтый заголовок */
+  text-align: center;
+}
+
+/* поля ввода – как wallet-поля PaymentModal */
+.pay-input-group{
+  margin-bottom: 16px;
+}
+.pay-input-group input{
+  width: 100%; padding: 12px;
+  background: #2c2c2c; color: #f0f0f0;
+  border: 1px solid #444; border-radius: 6px;
+  font-size: 16px;
+}
+.pay-input-group input:focus{
+  outline: none; border-color: #FFC107;
+}
+
+/* кнопки как в AccessModal - прозрачные с желтой обводкой */
+.pay-submit-btn{
+  width: auto;
+  min-width: 140px;
+  margin: 0 auto;
+  display: block;
+  padding: 10px 22px;
+  background: transparent !important;
+  border: 2px solid #FFC107 !important;
+  color: #FFC107 !important;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Добавляем подъем при ховере */
+.pay-submit-btn:hover {
+  background: transparent !important;
+  border: 2px solid #FFC107 !important;
+  color: #FFC107 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  transform: translateY(-2px) !important; /* подъем */
+}
+
+/* Убираем подъем для disabled и focus состояний */
+.pay-submit-btn:focus,
+.pay-submit-btn:active,
+.pay-submit-btn:disabled { 
+  background: transparent !important;
+  border-color: #666 !important;
+  color: #666 !important;
+  transform: none !important;
+  cursor: not-allowed; 
+}

@@ -1,0 +1,25 @@
+/* src/components/InfoButton.css */
+.info-btn {
+  padding: 10px 20px;
+  background: #FFC107;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  width: 100px; /* Такая же ширина как у Login */
+  text-align: center;
+}
+
+.info-btn:hover {
+  background: #FFB300;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.35);
+}
+
+.info-btn:active {
+  transform: translateY(0);
+}

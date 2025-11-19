@@ -1,0 +1,44 @@
+/* src/components/TableScreenshot.css */
+.screenshot-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.screenshot-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.6);
+}
+
+.loader-box {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.big-loader {
+  width: 80px;
+  height: 80px;
+  border: 8px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: splash-spin 1.5s linear infinite;
+}
+
+.loader-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+@keyframes splash-spin {
+  to { transform: rotate(360deg); }
+}

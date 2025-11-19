@@ -1,0 +1,37 @@
+.pay-modal-overlay{
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.8);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+.pay-modal-box{
+  background: #1e1e1e; color: #f0f0f0;
+  border-radius: 8px;
+  padding: 32px 36px; min-width: 400px; max-width: 90vw;
+  font-size: 18px; position: relative;
+}
+.pay-modal-close{
+  position: absolute; right: 14px; top: 14px;
+  background: none; border: none; color: #f0f0f0;
+  font-size: 24px; cursor: pointer; line-height: 1;
+}
+.pay-modal-title{ color: #FFC107; }          /* жёлтый заголовок */
+.pay-yellow{ color: #FFC107; font-weight: 600; } /* жёлтые цифры */
+/* остальные строки без изменений */
+
+.pay-modal-section{
+  margin: 16px 0;
+}
+.pay-modal-section b{                /* жёлтые цифры */
+  color: #FFC107; font-weight: 600;
+}
+.pay-wallet{
+  display: inline-block; background: #2c2c2c;
+  padding: 6px 10px; border-radius: 4px;
+  font-family: monospace; font-size: 17px; letter-spacing: .5px;
+}
+.pay-copy-btn{
+  margin-left: 12px; padding: 4px 10px; font-size: 14px;
+  background: #3c3c3c; color: #fff; border: none; border-radius: 4px; cursor: pointer;
+}
+.pay-copy-btn:hover{ background: #4a4a4a; }

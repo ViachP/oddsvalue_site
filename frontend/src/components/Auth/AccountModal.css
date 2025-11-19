@@ -1,0 +1,58 @@
+/* src/components/Auth/AccountModal.css */
+.account-modal {
+  background: #2b2b2b;
+  color: #f2f2f2;
+  width: 280px;
+  padding: 24px;
+  border-radius: 8px;
+  position: relative;
+  text-align: center;
+}
+
+.account-modal h3 {
+  color: #FFC107;
+  margin: 0 0 20px 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.account-actions {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.logout-btn {
+  background: transparent !important;
+  border: 2px solid #FFC107 !important; /* желтая обводка */
+  color: #f81111 !important; /* красный текст */
+  padding: 10px 20px !important;
+  border-radius: 6px !important;
+  cursor: pointer;
+  font-weight: 600;
+  min-width: 120px;
+  transition: transform 0.2s ease-in-out; /* плавная анимация */
+  /* Явно отключаем все ховер-эффекты */
+}
+
+.logout-btn:hover {
+  background: transparent !important;
+  border: 2px solid #FFC107 !important;
+  color: #f81111 !important;
+  transform: translateY(-3px); /* поднимаем кнопку на 3px вверх */
+  /* Никаких других изменений при ховере */
+}
+
+.modal-close {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  background: none;
+  border: none;
+  color: #f2f2f2;
+  font-size: 20px;
+  cursor: pointer;
+  line-height: 1;
+}
