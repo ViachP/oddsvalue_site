@@ -110,8 +110,10 @@ def send_verification_code_view(request):
         if not email:
             return JsonResponse({"error": "Email is required"}, status=400)
         
-        # ПРОВЕРКА ДО ОТПРАВКИ КОДА - ключевое изменение!
+        # ПРОВЕРКА ДО ОТПРАВКИ КОДА
         is_allowed, message = check_registration_allowed(request, email)
+        print(f"Allowed: {is_allowed}, Message: {message}")
+        
         if not is_allowed:
             return JsonResponse({"error": message}, status=400)
         
@@ -157,7 +159,7 @@ def verify_code_and_register(request):
         
         user.save()
 
-        # СОЗДАЕМ ЗАПИСЬ О РЕГИСТРАЦИИ - ключевое изменение!
+        # СОЗДАЕМ ЗАПИСЬ О РЕГИСТРАЦИИ
         create_registration_record(request, email, user)
 
         vc.is_used = True
@@ -193,7 +195,6 @@ def check_auth_status(request):
 
 @api_view(['POST'])
 def send_login_code(request):
-    print('DEBUG send_login_code body:', request.data)
     try:
         email = request.data.get('email')
         if not email:
@@ -235,22 +236,16 @@ def send_login_code(request):
                 fail_silently=False,
             )
         except (smtplib.SMTPException, socket.error, OSError) as smtp_err:
-            print('SMTP error:', smtp_err)
             return Response({'error': 'Temporary email issue. Please try again later.'}, status=502)
 
         return Response({'sent': True})
     except Exception as e:
-        print('ERROR send_login_code:', e)
-        traceback.print_exc()
         return Response({'error': 'Server error'}, status=500)
 
 @api_view(['POST'])
 def verify_login_code(request):
-    print('VERIFY body:', request.data)
     email = request.data.get('email')
     code = request.data.get('code')
-    print('VERIFY raw email :', repr(email))
-    print('VERIFY raw code  :', repr(code))
     
     if not email or not code:
         return Response({'error': 'Email and code required'}, status=400)

@@ -52,44 +52,39 @@ def check_registration_allowed(request, email):
     
     # 1. Проверка белого списка устройств
     if WhitelistedDevice.objects.filter(device_hash=device_hash).exists():
-        return True, "Устройство в белом списке"
+        return True, "Device in whitelist"
     
-    # 2. Проверка белого списка IP (для админов)
-    admin_ips = ['127.0.0.1']  # Добавьте ваши IP адреса
-    if ip_address in admin_ips:
-        return True, "Админский IP"
-    
-    # 3. Проверка существующего пользователя
+    # 2. Проверка существующего пользователя
     if CustomUser.objects.filter(email=email).exists():
-        return True, "Существующий пользователь"
+        return True, "Existing user"
     
-    # 4. Проверка блокировки устройства (для НОВЫХ регистраций)
+    # 3. Проверка блокировки устройства (для НОВЫХ регистраций)
     fingerprint, created = DeviceFingerprint.objects.get_or_create(
         device_hash=device_hash
     )
     
     # Если устройство уже заблокировано
     if fingerprint.is_blocked:
-        return False, "Регистрация с этого устройства заблокирована"
+        return False, "Registration from this device is blocked"
     
     # Если устройство пропускает проверку (для тестирования)
     if fingerprint.skip_verification:
-        return True, "Проверка отключена для этого устройства"
+        return True, "Verification disabled for this device"
     
-    # 5. Проверяем предыдущие регистрации с этого устройства
+    # 4. Проверяем предыдущие регистрации с этого устройства
     existing_registrations = Registration.objects.filter(device=fingerprint)
     
     if existing_registrations.exists():
-        # Блокируем устройство при попытке новой регистрации
-        fingerprint.is_blocked = True
-        fingerprint.save()
-        return False, "С этого устройства уже была регистрация. Новая регистрация невозможна."
+        # Получаем email существующих регистраций
+        existing_emails = existing_registrations.values_list('email', flat=True)
+        email_list = ', '.join(existing_emails)
+        return False, f"This device already has registered accounts: {email_list}. Please log in instead."
     
-    # 6. Проверка одноразовых email (опционально)
+    # 5. Проверка одноразовых email (опционально)
     if is_disposable_email(email):
-        return False, "Использование временных email запрещено"
+        return False, "Use of temporary email addresses is prohibited"
     
-    return True, "Регистрация разрешена"
+    return True, "Registration allowed"
 
 def create_registration_record(request, email, user=None):
     """
@@ -138,10 +133,3 @@ def send_verification_code(email):
     # )
     
     return True
-
-# Сохраняем старую функцию для обратной совместимости
-def check_registration_limits(ip_address, device_hash):
-    """
-    Старая функция для обратной совместимости
-    """
-    return True, "allowed"
