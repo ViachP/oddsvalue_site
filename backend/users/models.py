@@ -102,11 +102,51 @@ class VerificationCode(models.Model):
 class DeviceFingerprint(models.Model):
     device_hash = models.CharField(max_length=64, unique=True)
     first_seen = models.DateTimeField(auto_now_add=True)
-    users = models.ManyToManyField(CustomUser)
+    last_seen = models.DateTimeField(auto_now=True)  # Добавил для отслеживания активности
     is_blocked = models.BooleanField(default=False)
+    skip_verification = models.BooleanField(default=False)  # Для админов и тестирования
 
     def user_count(self):
-        return self.users.count()
+        """Количество пользователей, зарегистрированных с этого устройства"""
+        return self.registration_set.count()  # Используем связанные регистрации
 
     def __str__(self):
-        return self.device_hash
+        status = "BLOCKED" if self.is_blocked else "ACTIVE"
+        return f"{self.device_hash[:16]}... ({status})"
+
+
+class Registration(models.Model):
+    """
+    Модель для отслеживания регистраций с устройств
+    Каждая запись = одна регистрация (одна почта + одно устройство)
+    """
+    device = models.ForeignKey(DeviceFingerprint, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
+    email = models.EmailField()  # Email использованный при регистрации
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        # Уникальность комбинации устройство-email не требуется, 
+        # так как одна почта может быть только у одного пользователя
+        indexes = [
+            models.Index(fields=['device', 'created_at']),
+            models.Index(fields=['email']),
+        ]
+
+    def __str__(self):
+        return f"{self.email} via {self.device.device_hash[:16]}..."
+
+
+class WhitelistedDevice(models.Model):
+    """
+    Белый список устройств, которые пропускают проверку
+    (для админов, тестирования и исключений)
+    """
+    device_hash = models.CharField(max_length=64, unique=True)
+    reason = models.CharField(max_length=100, default="admin", 
+                             help_text="Причина добавления в белый список")
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.device_hash[:16]}... ({self.reason})"
