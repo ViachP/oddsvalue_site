@@ -17,7 +17,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate, get_user_model
 from django.core.mail import send_mail
 
-from .models import CustomUser, VerificationCode, DeviceFingerprint
+from .models import CustomUser, VerificationCode, DeviceFingerprint, Registration, WhitelistedDevice
 from .serializers import (
     UserRegistrationSerializer,
     SubscriptionSerializer,
@@ -25,9 +25,10 @@ from .serializers import (
     MeSerializer,
 )
 from .utils import (
-    create_device_fingerprint,
+    generate_device_fingerprint,
     get_client_ip,
-    check_registration_limits,
+    check_registration_allowed,
+    create_registration_record,
     send_verification_code,
 )
 
@@ -109,6 +110,11 @@ def send_verification_code_view(request):
         if not email:
             return JsonResponse({"error": "Email is required"}, status=400)
         
+        # ПРОВЕРКА ДО ОТПРАВКИ КОДА - ключевое изменение!
+        is_allowed, message = check_registration_allowed(request, email)
+        if not is_allowed:
+            return JsonResponse({"error": message}, status=400)
+        
         send_verification_code(email)
         return JsonResponse({"success": True, "message": "Verification code sent to email"})
     except Exception as e:
@@ -131,11 +137,10 @@ def verify_code_and_register(request):
         except VerificationCode.DoesNotExist:
             return JsonResponse({"error": "Invalid code"}, status=400)
 
-        ip_address = get_client_ip(request)
-        device_hash = create_device_fingerprint(request)
-        can_register, reason = check_registration_limits(ip_address, device_hash)
-        if not can_register:
-            return JsonResponse({"error": "Registration limit exceeded", "reason": reason}, status=400)
+        # Дополнительная проверка на случай если что-то изменилось между отправкой кода и его верификацией
+        is_allowed, message = check_registration_allowed(request, email)
+        if not is_allowed:
+            return JsonResponse({"error": message}, status=400)
 
         user_data = {"username": email, "email": email, "password": None}
         serializer = UserRegistrationSerializer(data=user_data)
@@ -143,8 +148,8 @@ def verify_code_and_register(request):
             return JsonResponse({"error": serializer.errors}, status=400)
 
         user = serializer.save()
-        user.registration_ip = ip_address
-        user.device_hash = device_hash
+        user.registration_ip = get_client_ip(request)
+        user.device_hash = generate_device_fingerprint(request)
         
         # Устанавливаем trial период для обычных пользователей
         if not user.is_superuser:
@@ -152,8 +157,8 @@ def verify_code_and_register(request):
         
         user.save()
 
-        device, _ = DeviceFingerprint.objects.get_or_create(device_hash=device_hash)
-        device.users.add(user)
+        # СОЗДАЕМ ЗАПИСЬ О РЕГИСТРАЦИИ - ключевое изменение!
+        create_registration_record(request, email, user)
 
         vc.is_used = True
         vc.save()
@@ -194,6 +199,13 @@ def send_login_code(request):
         if not email:
             return Response({'error': 'Email required'}, status=400)
 
+        # ПРОВЕРКА ДЛЯ СУЩЕСТВУЮЩИХ ПОЛЬЗОВАТЕЛЕЙ - они всегда могут войти
+        # Но для новых регистраций проверяем устройство
+        if not CustomUser.objects.filter(email=email).exists():
+            is_allowed, message = check_registration_allowed(request, email)
+            if not is_allowed:
+                return Response({'error': message}, status=400)
+
         # Создаем или получаем пользователя
         user, created = CustomUser.objects.get_or_create(
             email=email,
@@ -204,6 +216,9 @@ def send_login_code(request):
         if created and not user.is_superuser:
             user.expires_at = timezone.now() + timedelta(days=7)
             user.save()
+
+            # СОЗДАЕМ ЗАПИСЬ О РЕГИСТРАЦИИ для нового пользователя
+            create_registration_record(request, email, user)
 
         code = ''.join(random.choices(string.digits, k=6))
         VerificationCode.objects.update_or_create(
