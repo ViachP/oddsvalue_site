@@ -2,9 +2,9 @@
 import hashlib
 from django.utils import timezone
 from datetime import timedelta
-from .models import DeviceFingerprint, VerificationCode
+from .models import DeviceFingerprint, VerificationCode, Registration, WhitelistedDevice, CustomUser
 
-def create_device_fingerprint(request):
+def generate_device_fingerprint(request):
     """
     Создает уникальный хеш устройства на основе данных запроса
     """
@@ -12,9 +12,9 @@ def create_device_fingerprint(request):
     accept_language = request.META.get('HTTP_ACCEPT_LANGUAGE', '')
     ip_address = get_client_ip(request)
     
-    # Создаем строку для хеширования
+    # Создаем строку для хеширования (можно добавить больше параметров)
     fingerprint_string = f"{user_agent}{accept_language}{ip_address}"
-    device_hash = hashlib.md5(fingerprint_string.encode()).hexdigest()
+    device_hash = hashlib.sha256(fingerprint_string.encode()).hexdigest()
     
     return device_hash
 
@@ -42,34 +42,79 @@ def is_disposable_email(email):
     domain = email.split('@')[-1].lower()
     return domain in disposable_domains
 
-def check_registration_limits(ip_address, device_hash):
+def check_registration_allowed(request, email):
     """
-    Проверяет лимиты регистраций с IP и устройства
+    Основная функция проверки возможности регистрации
+    Возвращает (is_allowed, message)
     """
-    # Проверяем лимит по IP (максимум 3 регистрации в неделю)
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
+    device_hash = generate_device_fingerprint(request)
+    ip_address = get_client_ip(request)
     
-    week_ago = timezone.now() - timedelta(days=7)
-    ip_registrations = User.objects.filter(
-        registration_ip=ip_address,
-        date_joined__gte=week_ago
-    ).count()
+    # 1. Проверка белого списка устройств
+    if WhitelistedDevice.objects.filter(device_hash=device_hash).exists():
+        return True, "Устройство в белом списке"
     
-    if ip_registrations >= 3:
-        return False, "too_many_registrations_from_ip"
+    # 2. Проверка белого списка IP (для админов)
+    admin_ips = ['127.0.0.1']  # Добавьте ваши IP адреса
+    if ip_address in admin_ips:
+        return True, "Админский IP"
     
-    # Проверяем устройство (максимум 2 пользователя на устройство)
-    try:
-        device = DeviceFingerprint.objects.get(device_hash=device_hash)
-        if device.user_count() >= 2:
-            return False, "too_many_users_on_device"
-        if device.is_blocked:
-            return False, "device_blocked"
-    except DeviceFingerprint.DoesNotExist:
-        pass
+    # 3. Проверка существующего пользователя
+    if CustomUser.objects.filter(email=email).exists():
+        return True, "Существующий пользователь"
     
-    return True, "allowed"
+    # 4. Проверка блокировки устройства (для НОВЫХ регистраций)
+    fingerprint, created = DeviceFingerprint.objects.get_or_create(
+        device_hash=device_hash
+    )
+    
+    # Если устройство уже заблокировано
+    if fingerprint.is_blocked:
+        return False, "Регистрация с этого устройства заблокирована"
+    
+    # Если устройство пропускает проверку (для тестирования)
+    if fingerprint.skip_verification:
+        return True, "Проверка отключена для этого устройства"
+    
+    # 5. Проверяем предыдущие регистрации с этого устройства
+    existing_registrations = Registration.objects.filter(device=fingerprint)
+    
+    if existing_registrations.exists():
+        # Блокируем устройство при попытке новой регистрации
+        fingerprint.is_blocked = True
+        fingerprint.save()
+        return False, "С этого устройства уже была регистрация. Новая регистрация невозможна."
+    
+    # 6. Проверка одноразовых email (опционально)
+    if is_disposable_email(email):
+        return False, "Использование временных email запрещено"
+    
+    return True, "Регистрация разрешена"
+
+def create_registration_record(request, email, user=None):
+    """
+    Создает запись о регистрации после успешного создания пользователя
+    """
+    device_hash = generate_device_fingerprint(request)
+    ip_address = get_client_ip(request)
+    
+    fingerprint, created = DeviceFingerprint.objects.get_or_create(
+        device_hash=device_hash
+    )
+    
+    # Обновляем last_seen
+    fingerprint.last_seen = timezone.now()
+    fingerprint.save()
+    
+    # Создаем запись о регистрации
+    registration = Registration.objects.create(
+        device=fingerprint,
+        user=user,
+        email=email,
+        ip_address=ip_address
+    )
+    
+    return registration
 
 def send_verification_code(email):
     """
@@ -93,3 +138,10 @@ def send_verification_code(email):
     # )
     
     return True
+
+# Сохраняем старую функцию для обратной совместимости
+def check_registration_limits(ip_address, device_hash):
+    """
+    Старая функция для обратной совместимости
+    """
+    return True, "allowed"
