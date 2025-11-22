@@ -10,11 +10,11 @@ export default function InfoModal({ isOpen, onClose }: InfoModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="info-overlay" onClick={onClose}>
-      <div className="info-box" onClick={(e) => e.stopPropagation()}>
-        <button className="info-close" onClick={onClose}>×</button>
+    <div className="pay-modal-overlay" onClick={onClose}>
+      <div className="pay-modal-box" onClick={(e) => e.stopPropagation()}>
+        <button className="pay-modal-close" onClick={onClose}>×</button>
 
-        <h2 className="info-title">Columns Guide</h2>
+        <h2 className="pay-modal-title">Columns Guide</h2>
 
         <section className="info-sect">
           <h3>Opening and Closing Odds</h3>

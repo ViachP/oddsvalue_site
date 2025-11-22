@@ -41,3 +41,81 @@
   color: #888;
 }
 
+/* Styles for closing modal windows */
+
+.pay-modal-overlay {
+  position: fixed; 
+  inset: 0;
+  background: rgba(0,0,0,.8);
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  z-index: 1000;
+}
+
+.pay-modal-box {
+  background: #1e1e1e; 
+  color: #f0f0f0;
+  border-radius: 8px;
+  padding: 32px 36px; 
+  min-width: 400px; 
+  max-width: 90vw;
+  font-size: 18px; 
+  position: relative;
+  box-shadow: 0 8px 30px rgba(0,0,0,.6);
+}
+
+.pay-modal-close {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  background: none;
+  border: none;
+  color: #f0f0f0;
+  font-size: 24px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.pay-modal-close:hover {
+  color: #FFC107 !important;
+  background-color: rgba(255, 193, 7, 0.1);
+}
+
+.pay-modal-close:focus,
+.pay-modal-close:active {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  background-color: transparent;
+  color: #f0f0f0;
+}
+
+.pay-modal-close:focus-visible {
+  outline: 2px solid #FFC107;
+  outline-offset: 2px;
+}
+
+.pay-modal-title {
+  margin: 0 0 24px; 
+  font-size: 22px; 
+  font-weight: 600;
+  color: #FFC107;
+  text-align: center;
+}
+
+/* Убираем стандартный focus для кликов, но оставляем для клавиатуры */
+button:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Оставляем focus только для навигации с клавиатуры */
+button:focus-visible {
+  outline: 2px solid #FFC107 !important;
+  outline-offset: 2px !important;
+}
+

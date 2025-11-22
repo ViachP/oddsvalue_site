@@ -13,7 +13,7 @@ const Login: React.FC = () => {
   if (user)
     return (
       <>
-        <button className="login-btn" onClick={() => setIsAccountOpen(true)} title={user.email} >
+        <button className="login-btn" onClick={() => setIsAccountOpen(true)} title={user.email}>
           <span className="email-short">
             {user.email.split('@')[0]}@...
           </span>

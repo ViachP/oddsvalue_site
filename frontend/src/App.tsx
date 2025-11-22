@@ -1,3 +1,4 @@
+// App.tsx
 import './App.css';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import DataLoader from './components/DataLoader';
@@ -6,14 +7,13 @@ import InfoButton from './components/InfoButton';
 import PaymentButton from './components/PaymentButton';
 
 function AppContent() {
-  const { user } = useAuth();          // null = не залогинен
+  const { user } = useAuth();
 
   return (
     <div className="App">
       <main>
         <DataLoader />
 
-        {/* фиксация кнопок в правом верхнем углу */}
         <div style={{
           position: 'fixed',
           top: '12px',
@@ -26,7 +26,7 @@ function AppContent() {
         }}>
           <Login />
           <InfoButton />
-          {user && <PaymentButton />}   {/* показываем только если залогинен */}
+          {user && <PaymentButton />}
         </div>
       </main>
     </div>
