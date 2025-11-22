@@ -582,7 +582,11 @@ export default function MatchList() {
 
             {/* Reset */}
             <div style={{ ...filterItemStyle, minWidth: '80px', marginTop: '16px' }}>
-              <button onClick={handleResetFilters} style={resetButtonStyle}>Reset</button>
+              <button onClick={handleResetFilters} 
+                      style={resetButtonStyle}
+                      className="reset-button">
+                        Reset
+              </button>
             </div>
           </div>
         </div>
