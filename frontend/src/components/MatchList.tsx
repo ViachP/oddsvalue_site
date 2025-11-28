@@ -21,7 +21,12 @@ import {
   selectWithDropdownStyle, checkboxDropdownWideStyle, leagueHeaderStyle
 } from './MatchList.styles';
 
-export default function MatchList() {
+interface Props {
+  activeModal: 'none' | 'access' | 'login' | 'renew' | 'payment';
+  setActiveModal: (modal: 'none' | 'access' | 'login' | 'renew' | 'payment') => void;
+}
+
+export default function MatchList({ activeModal, setActiveModal }: Props) {
   /* ----------  состояния  ---------- */
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<string[]>([]);
@@ -92,11 +97,9 @@ export default function MatchList() {
   // const isGuest   = !user;                    // вообще не заходил
   const isExpired = user && !hasAccess;       // заходил, но подписка кончилась
 
-  /* ---------- состояния для модалок ---------- */
-  const [isModalOpen, setIsModalOpen]     = useState(false); // AccessModal (гость)
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [isRenewOpen, setIsRenewOpen]     = useState(false); // RenewModal  (просрочка)
-  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const handlePaymentFromRenew = () => {
+    setActiveModal('payment'); // напрямую открываем PaymentModal
+  };
 
   const handleFilterClick = (filterKey: string) => {
     if (hasAccess) {
@@ -128,9 +131,9 @@ export default function MatchList() {
 
     /* ❌  доступа нет – решаем, какую модалку показать */
     if (isExpired) {
-      setIsRenewOpen(true);   // подписка кончилась
+      setActiveModal('renew');  // подписка кончилась
     } else {
-      setIsModalOpen(true);   // гость
+      setActiveModal('access');  // гость
     }
   };
 
@@ -453,6 +456,10 @@ export default function MatchList() {
   /* ----------  рендер  ---------- */
   const topBlockRef = useRef<HTMLDivElement>(null);
 
+  const formatOdds = (value: number | null | undefined): string => {
+      return (value || 0).toFixed(2);
+  };
+
   return (
     <div style={{ padding: '10px' }}>
       <div ref={topBlockRef} style={topBlockStyle}>
@@ -622,6 +629,7 @@ export default function MatchList() {
           <tbody>
             {filteredMatches.map((match) => {
               const matchDate = new Date(match.date);
+              matchDate.setHours(matchDate.getHours() - 3); // ← убираем +3
               const day = matchDate.getDate().toString().padStart(2, '0');
               const month = (matchDate.getMonth() + 1).toString().padStart(2, '0');
               const year = matchDate.getFullYear();
@@ -636,26 +644,34 @@ export default function MatchList() {
 
               return (
                 <tr key={match.id} style={isHighlighted ? { backgroundColor: '#63553f' } : undefined}>
-                  <td style={cellStyle}>{formattedDateTime}</td>
-                  <td style={teamCellStyle} title={match.home}>{match.home}</td>
-                  <td style={teamCellStyle} title={match.away}>{match.away}</td>
-                  <td style={cellStyle}>{match.one_o.toFixed(2)}</td>
-                  <td style={cellStyle}>{match.one_e.toFixed(2)}</td>
-                  <td style={cellStyle}>{match.x_o.toFixed(2)}</td>
-                  <td style={cellStyle}>{match.x_e.toFixed(2)}</td>
-                  <td style={cellStyle}>{match.two_o.toFixed(2)}</td>
-                  <td style={cellStyle}>{match.two_e.toFixed(2)}</td>
-                  <td style={cellStyle}>{(match.bts_o || 0).toFixed(2)}</td>
-                  <td style={cellStyle}>{(match.bts_e || 0).toFixed(2)}</td>
-                  <td style={cellStyle}>{(match.bts_no_o || 0).toFixed(2)}</td>
-                  <td style={cellStyle}>{(match.bts_no_e || 0).toFixed(2)}</td>
-                  <td style={cellStyle}>{match.over_o.toFixed(2)}</td>
-                  <td style={cellStyle}>{match.over_e.toFixed(2)}</td>
-                  <td style={cellStyle}>{match.under_o.toFixed(2)}</td>
-                  <td style={cellStyle}>{match.under_e.toFixed(2)}</td>
-                  <td style={cellStyle}>{match.first_half || '-'}</td>
-                  <td style={cellStyle}>{match.match || '-'}</td>
-                  <td style={cellStyle_2} title={match.league}>{getFullLeagueName(match.league)}</td>
+                    <td style={cellStyle}>{formattedDateTime}</td>
+                    <td style={teamCellStyle} title={match.home}>{match.home}</td>
+                    <td style={teamCellStyle} title={match.away}>{match.away}</td>
+                    
+                    {/* Основные исходы */}
+                    <td style={cellStyle}>{formatOdds(match.one_o)}</td>
+                    <td style={cellStyle}>{formatOdds(match.one_e)}</td>
+                    <td style={cellStyle}>{formatOdds(match.x_o)}</td>
+                    <td style={cellStyle}>{formatOdds(match.x_e)}</td>
+                    <td style={cellStyle}>{formatOdds(match.two_o)}</td>
+                    <td style={cellStyle}>{formatOdds(match.two_e)}</td>
+                    
+                    {/* БТС */}
+                    <td style={cellStyle}>{formatOdds(match.bts_o)}</td>
+                    <td style={cellStyle}>{formatOdds(match.bts_e)}</td>
+                    <td style={cellStyle}>{formatOdds(match.bts_no_o)}</td>
+                    <td style={cellStyle}>{formatOdds(match.bts_no_e)}</td>
+                    
+                    {/* Тоталы */}
+                    <td style={cellStyle}>{formatOdds(match.over_o)}</td>
+                    <td style={cellStyle}>{formatOdds(match.over_e)}</td>
+                    <td style={cellStyle}>{formatOdds(match.under_o)}</td>
+                    <td style={cellStyle}>{formatOdds(match.under_e)}</td>
+                    
+                    {/* Нечисловые поля */}
+                    <td style={cellStyle}>{match.first_half || '-'}</td>
+                    <td style={cellStyle}>{match.match || '-'}</td>
+                    <td style={cellStyle_2} title={match.league}>{getFullLeagueName(match.league)}</td>
                 </tr>
               );
             })}
@@ -664,29 +680,26 @@ export default function MatchList() {
       </div>
 
       <AccessModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSwitchToLogin={() => {
-         setIsModalOpen(false); // закрываем AccessModal
-         setIsLoginOpen(true);  // открываем LoginModal
-        }}
+        isOpen={activeModal === 'access'}
+        onClose={() => setActiveModal('none')}
+        onSwitchToLogin={() => setActiveModal('login')}
       />
-      <RenewModal
-        isOpen={isRenewOpen}
-        onClose={() => setIsRenewOpen(false)}
-        onSwitchToPayment={() => {
-          setIsRenewOpen(false);
-          /* открой свою модалку-оплату */
-          setIsPaymentOpen(true);
-        }}
-      />
+
       <LoginModal
-        isOpen={isLoginOpen}
-        onClose={() => setIsLoginOpen(false)}
-      />	
+        isOpen={activeModal === 'login'}
+        onClose={() => setActiveModal('none')}
+        onTrialExpired={() => setActiveModal('renew')} // новый пропс
+      />
+
+      <RenewModal
+        isOpen={activeModal === 'renew'}
+        onClose={() => setActiveModal('none')}
+        onSwitchToPayment={handlePaymentFromRenew}
+      />
+
       <PaymentModal
-        isOpen={isPaymentOpen}
-        onClose={() => setIsPaymentOpen(false)}
+        isOpen={activeModal === 'payment'}
+        onClose={() => setActiveModal('none')}
       />
     </div>
   );

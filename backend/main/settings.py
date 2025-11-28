@@ -15,6 +15,9 @@ ALLOWED_HOSTS = [
     'oddsvalue.pro',
     'www.oddsvalue.pro',
     '212.16.78.50',
+    '0.0.0.0',  # ← ДОБАВИТЬ ЭТУ СТРОКУ
+    'localhost',  # ← И ЭТУ ТОЖЕ
+    '127.0.0.1',  # ← И ЭТУ
 ]
 
 INSTALLED_APPS = [
@@ -42,6 +45,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'users.middleware.TrialAccessMiddleware',
 ]
 
 ROOT_URLCONF = 'main.urls'
@@ -115,17 +119,26 @@ LOGGING = {
     'disable_existing_loggers': False,
     'handlers': {
         'file': {
-            'level': 'INFO',
+            'level': 'DEBUG',  # ← ИЗМЕНИТЬ НА DEBUG
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': BASE_DIR / 'logs' / 'django.log',
             'maxBytes': 15 * 1024 * 1024,
             'backupCount': 5,
         },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+        },
     },
     'loggers': {
         'django': {
-            'handlers': ['file'],
-            'level': 'INFO',
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG',  # ← ИЗМЕНИТЬ НА DEBUG
+            'propagate': True,
+        },
+        'users': {
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG',  # ← ИЗМЕНИТЬ НА DEBUG
             'propagate': True,
         },
     },

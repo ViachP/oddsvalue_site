@@ -17,7 +17,7 @@ export default function InfoModal({ isOpen, onClose }: InfoModalProps) {
         <h2 className="pay-modal-title">Columns Guide</h2>
 
         <section className="info-sect">
-          <h3>Opening and Closing Odds</h3>
+          {/* <h3>Opening and Closing Odds</h3> */}
           <p>Each market shows two values: opening (o) and closing (e).</p>
           <p><code>1(o)</code> – opening odds for Home team.</p>
           <p><code>1(e)</code> – closing odds for Home team.</p>

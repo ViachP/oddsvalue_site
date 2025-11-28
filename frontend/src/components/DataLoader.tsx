@@ -3,7 +3,12 @@ import { useState, useEffect } from 'react';
 import TableScreenshot from './TableScreenshot';
 import MatchList from './MatchList';
 
-export default function DataLoader() {
+interface Props {
+  activeModal: 'none' | 'access' | 'login' | 'renew' | 'payment';
+  setActiveModal: (modal: 'none' | 'access' | 'login' | 'renew' | 'payment') => void;
+}
+
+export default function DataLoader({ activeModal, setActiveModal }: Props) {
   const [showReal, setShowReal] = useState(false);
 
   useEffect(() => {
@@ -15,7 +20,7 @@ export default function DataLoader() {
     <>
       {!showReal && <TableScreenshot onLoaded={() => {}} />}
       <div style={{ display: showReal ? 'block' : 'none' }}>
-        <MatchList />
+        <MatchList activeModal={activeModal} setActiveModal={setActiveModal} />
       </div>
     </>
   );
