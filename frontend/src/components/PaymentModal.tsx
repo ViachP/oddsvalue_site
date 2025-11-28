@@ -24,6 +24,7 @@ export const PaymentModal: React.FC<Props> = ({ isOpen, onClose }) => {
         </div>
 
         <div className="pay-modal-section">
+          <strong>Network: TRC20</strong><br/>
           crypto wallet<br/>
           <code className="pay-wallet">TEbSfSCJ8dFJc8oSMujF41kqLcVcxxaeJo</code>
           <button className="pay-copy-btn" onClick={copyWallet}>Copy</button>

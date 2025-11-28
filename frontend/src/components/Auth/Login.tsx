@@ -5,7 +5,11 @@ import LoginModal from './LoginModal';
 import AccountModal from './AccountModal';
 import './Login.css';
 
-const Login: React.FC = () => {
+interface Props {
+  onTrialExpired: () => void;
+}
+
+const Login: React.FC<Props> = ({ onTrialExpired }) => {
   const { user, logout } = useAuth();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
@@ -37,6 +41,7 @@ const Login: React.FC = () => {
       <LoginModal
         isOpen={isLoginOpen}
         onClose={() => setIsLoginOpen(false)}
+        onTrialExpired={onTrialExpired}
       />
     </>
   );

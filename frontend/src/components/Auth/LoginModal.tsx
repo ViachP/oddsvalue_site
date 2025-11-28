@@ -6,9 +6,10 @@ import './LoginModal.css';
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  onTrialExpired: () => void; 
 }
 
-const LoginModal: React.FC<Props> = ({ isOpen, onClose }) => {
+const LoginModal: React.FC<Props> = ({ isOpen, onClose, onTrialExpired }) => {
   const [stage, setStage] = useState<'email' | 'code'>('email');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -21,8 +22,13 @@ const LoginModal: React.FC<Props> = ({ isOpen, onClose }) => {
     try {
       await sendLoginCode(email);
       setStage('code');
-    } catch {
-      alert('Failed to send code');
+    } catch (error: any) {
+      if (error.response?.data?.trial_expired) {
+        onClose();
+        onTrialExpired();
+      } else {
+        alert('Failed to send code: ' + (error.response?.data?.error || error.message));
+      }
     } finally {
       setLoading(false);
     }
@@ -54,6 +60,9 @@ const LoginModal: React.FC<Props> = ({ isOpen, onClose }) => {
         {stage === 'email' && (
           <>
             <h3 className="pay-modal-title">Code Verification</h3>
+            <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px', textAlign: 'center' }}>
+              Enter your email to get verification code
+            </p>
             <form onSubmit={(e) => { e.preventDefault(); handleSendCode(); }}>
               <div className="pay-input-group">
                 <input
@@ -74,6 +83,9 @@ const LoginModal: React.FC<Props> = ({ isOpen, onClose }) => {
         {stage === 'code' && (
           <>
             <h3 className="pay-modal-title">Enter Verification Code</h3>
+            <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px', textAlign: 'center' }}>
+              We sent a 6-digit code to {email}
+            </p>
             <form onSubmit={(e) => { e.preventDefault(); handleVerify(); }}>
               <div className="pay-input-group">
                 <input

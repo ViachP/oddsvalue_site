@@ -1,4 +1,3 @@
-// src/contexts/AuthContext.tsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import type { ReactNode } from 'react';
@@ -18,8 +17,8 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   register: (email: string, password: string) => Promise<void>;
-  sendLoginCode: (email: string) => Promise<void>;      // ← новая
-  verifyLoginCode: (email: string, code: string) => Promise<void>; // ← новая
+  sendLoginCode: (email: string) => Promise<void>;
+  verifyLoginCode: (email: string, code: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -49,7 +48,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       const { data } = await axios.post(`${API}/token/`, { email, password });
 
-      /* защита от undefined – берём email из аргументов, если сервер не отдал */
       const u: User = {
         email: data.user?.email || email,
         role: data.user?.role || 'user',
@@ -108,7 +106,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const sendLoginCode = async (email: string) => {
-    // await axios.post(`${API}/send-login-code/`, { email });
     try {
       const r = await axios.post(`${API}/send-login-code/`, { email });
       console.log('sendLoginCode response:', r.status, r.data);
