@@ -30,6 +30,9 @@ from .utils import (
     check_registration_allowed,
     create_registration_record,
     send_verification_code,
+    collect_device_fingerprint,
+    get_user_device_stats,
+    can_user_add_new_device
 )
 
 User = get_user_model()
@@ -75,6 +78,9 @@ class LoginView(generics.GenericAPIView):
                 {"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED
             )
 
+        # ⭐⭐⭐ ПРИВЯЗЫВАЕМ УСТРОЙСТВО К ПОЛЬЗОВАТЕЛЮ ⭐⭐⭐
+        collect_device_fingerprint(request, email, user)
+
         refresh = RefreshToken.for_user(user)
         return Response(
             {
@@ -90,7 +96,10 @@ class MeView(generics.RetrieveAPIView):
     serializer_class = MeSerializer
 
     def get_object(self):
-        return self.request.user
+        user = self.request.user
+        # ⭐⭐⭐ ОБНОВЛЯЕМ ИНФОРМАЦИЮ ОБ УСТРОЙСТВЕ ⭐⭐⭐
+        collect_device_fingerprint(self.request, user.email, user)
+        return user
 
 # ------------------ подписка ------------------
 class SubscriptionDetailView(generics.RetrieveUpdateAPIView):
@@ -112,13 +121,13 @@ def send_verification_code_view(request):
         
         # ПРОВЕРКА ДО ОТПРАВКИ КОДА
         is_allowed, message = check_registration_allowed(request, email)
-        print(f"Allowed: {is_allowed}, Message: {message}")
         
         if not is_allowed:
             return JsonResponse({"error": message}, status=400)
         
         send_verification_code(email)
         return JsonResponse({"success": True, "message": "Verification code sent to email"})
+        
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
@@ -139,7 +148,7 @@ def verify_code_and_register(request):
         except VerificationCode.DoesNotExist:
             return JsonResponse({"error": "Invalid code"}, status=400)
 
-        # Дополнительная проверка на случай если что-то изменилось между отправкой кода и его верификацией
+        # Дополнительная проверка
         is_allowed, message = check_registration_allowed(request, email)
         if not is_allowed:
             return JsonResponse({"error": message}, status=400)
@@ -151,7 +160,6 @@ def verify_code_and_register(request):
 
         user = serializer.save()
         user.registration_ip = get_client_ip(request)
-        user.device_hash = generate_device_fingerprint(request)
         
         # Устанавливаем trial период для обычных пользователей
         if not user.is_superuser:
@@ -159,7 +167,7 @@ def verify_code_and_register(request):
         
         user.save()
 
-        # СОЗДАЕМ ЗАПИСЬ О РЕГИСТРАЦИИ
+        # ⭐⭐⭐ СОЗДАЕМ ЗАПИСЬ О РЕГИСТРАЦИИ И ПРИВЯЗЫВАЕМ УСТРОЙСТВО ⭐⭐⭐
         create_registration_record(request, email, user)
 
         vc.is_used = True
@@ -176,6 +184,7 @@ def verify_code_and_register(request):
                 "trial_end": user.expires_at.isoformat() if user.expires_at else None,
             }
         )
+        
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
@@ -183,6 +192,9 @@ def verify_code_and_register(request):
 @csrf_exempt
 def check_auth_status(request):
     if request.user.is_authenticated:
+        # ⭐⭐⭐ ОБНОВЛЯЕМ ИНФОРМАЦИЮ ОБ УСТРОЙСТВЕ ⭐⭐⭐
+        collect_device_fingerprint(request, request.user.email, request.user)
+        
         return JsonResponse(
             {
                 "authenticated": True,
@@ -200,27 +212,26 @@ def send_login_code(request):
         if not email:
             return Response({'error': 'Email required'}, status=400)
 
-        # ПРОВЕРКА ДЛЯ СУЩЕСТВУЮЩИХ ПОЛЬЗОВАТЕЛЕЙ - они всегда могут войти
-        # Но для новых регистраций проверяем устройство
-        if not CustomUser.objects.filter(email=email).exists():
+        # ПРОВЕРКА TRIAL СТАТУСА ДЛЯ СУЩЕСТВУЮЩИХ ПОЛЬЗОВАТЕЛЕЙ
+        try:
+            user = CustomUser.objects.get(email=email)
+            # Если пользователь существует и у него истек trial
+            if not user.is_superuser and not user.has_active_trial:
+                return Response({
+                    'trial_expired': True,
+                    'message': 'Your trial period has expired. Please subscribe to continue.'
+                }, status=403)
+            
+            # ⭐⭐⭐ ПРИВЯЗЫВАЕМ УСТРОЙСТВО К ПОЛЬЗОВАТЕЛЮ ⭐⭐⭐
+            collect_device_fingerprint(request, email, user)
+            
+        except CustomUser.DoesNotExist:
+            # Для новых пользователей проверяем устройство
             is_allowed, message = check_registration_allowed(request, email)
             if not is_allowed:
                 return Response({'error': message}, status=400)
 
-        # Создаем или получаем пользователя
-        user, created = CustomUser.objects.get_or_create(
-            email=email,
-            defaults={'username': email}
-        )
-
-        # Если пользователь новый (только что создан) и не админ - устанавливаем trial период
-        if created and not user.is_superuser:
-            user.expires_at = timezone.now() + timedelta(days=7)
-            user.save()
-
-            # СОЗДАЕМ ЗАПИСЬ О РЕГИСТРАЦИИ для нового пользователя
-            create_registration_record(request, email, user)
-
+        # Остальной код без изменений...
         code = ''.join(random.choices(string.digits, k=6))
         VerificationCode.objects.update_or_create(
             email=email,
@@ -239,6 +250,7 @@ def send_login_code(request):
             return Response({'error': 'Temporary email issue. Please try again later.'}, status=502)
 
         return Response({'sent': True})
+        
     except Exception as e:
         return Response({'error': 'Server error'}, status=500)
 
@@ -264,6 +276,10 @@ def verify_login_code(request):
     vc.save()
 
     user = CustomUser.objects.get(email=email)
+    
+    # ⭐⭐⭐ ПРИВЯЗЫВАЕМ УСТРОЙСТВО К ПОЛЬЗОВАТЕЛЮ ⭐⭐⭐
+    collect_device_fingerprint(request, email, user)
+
     refresh = RefreshToken.for_user(user)
 
     # Проверяем активна ли подписка
@@ -280,4 +296,26 @@ def verify_login_code(request):
             'is_trial_expired': not has_active_subscription and not user.is_superuser,
             'trial_days_remaining': user.trial_days_remaining
         }
+    })
+
+# ------------------ API для управления устройствами ------------------
+@api_view(['GET'])
+def get_my_devices(request):
+    """Получает устройства текущего пользователя"""
+    if not request.user.is_authenticated:
+        return Response({'error': 'Not authenticated'}, status=401)
+    
+    stats = get_user_device_stats(request.user)
+    return Response(stats)
+
+@api_view(['POST'])
+def check_new_device(request):
+    """Проверяет может ли пользователь добавить новое устройство"""
+    if not request.user.is_authenticated:
+        return Response({'error': 'Not authenticated'}, status=401)
+    
+    can_add, message = can_user_add_new_device(request.user)
+    return Response({
+        'can_add': can_add,
+        'message': message
     })
