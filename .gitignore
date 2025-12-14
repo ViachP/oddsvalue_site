@@ -11,3 +11,7 @@ db.sqlite3
 *.pyd
 .python
 *.sql
+
+# Django static files
+/backend/staticfiles/
+/backend/static/
