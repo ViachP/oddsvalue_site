@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'import_export',
     'subscriptions',
+    'blog',
 ]
 
 MIDDLEWARE = [
@@ -96,11 +97,42 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'users.CustomUser'
 
+CORS_ALLOW_ALL_ORIGINS = True  # ← ДОБАВЬТЕ ЭТУ СТРОКУ ДЛЯ РАЗРАБОТКИ
+
 CORS_ALLOWED_ORIGINS = [
     'https://oddsvalue.pro',
     'https://www.oddsvalue.pro',
     'http://localhost:5173',
     'http://127.0.0.1:5173',
+     # Добавляем для iOS Safari
+    'capacitor://localhost',
+    'ionic://localhost',
+    'http://localhost',
+    'https://localhost',
+]
+
+# ДОБАВЬТЕ ЭТИ СТРОКИ ТОЖЕ:
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'access-control-allow-origin',
 ]
 
 REST_FRAMEWORK = {

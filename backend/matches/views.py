@@ -9,12 +9,18 @@ from django.db.models.functions import Cast, Substr, StrIndex, Replace
 from django.db.models import Case, When, BooleanField
 from django.db.models import Case, When, Value, CharField
 import time # <-- Добавляем импорт time
+from rest_framework.pagination import LimitOffsetPagination  # <-- ДОБАВЬТЕ ЭТУ СТРОКУ
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
+import json
 
 print("Поля модели MainLeague:", [f.name for f in MainLeague._meta.get_fields()])
 
 class MatchViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = MainLeague.objects.all().order_by('-date')
     serializer_class = MainLeagueSerializer
+    pagination_class = LimitOffsetPagination  # <-- ДОБАВЬТЕ ЭТУ СТРОКУ
 
     def get_queryset(self):
         start_time = time.time() # <-- Начало измерения времени для get_queryset
@@ -340,4 +346,32 @@ class MatchViewSet(viewsets.ReadOnlyModelViewSet):
             stats['roi_under'] = total_profit_under 
 
         return Response(stats)
+
+@csrf_exempt
+def ios_test(request):
+    """Простой тест для iOS - работает без аутентификации"""
+    if request.method == 'GET':
+        data = {
+            "status": "success",
+            "message": "iOS test endpoint is working",
+            "timestamp": timezone.now().isoformat(),
+            "cors_supported": True
+        }
+        response = JsonResponse(data)
+        # Явно добавляем CORS заголовки
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "Content-Type"
+        return response
+    
+    elif request.method == 'OPTIONS':
+        # Для preflight запросов
+        response = JsonResponse({})
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "Content-Type"
+        response["Access-Control-Max-Age"] = "86400"
+        return response
+    
+    return JsonResponse({"error": "Method not allowed"}, status=405)
 
