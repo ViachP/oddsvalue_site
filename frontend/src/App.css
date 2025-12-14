@@ -125,3 +125,417 @@ button:focus-visible {
   box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
+/* ==================== */
+/* SAFARI-SPECIFIC FIXES */
+/* ==================== */
+
+/* Fix for Safari viewport height issues */
+@supports (-webkit-touch-callout: none) {
+
+  html, body {
+    background-color: #282c34 !important;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #root {
+    height: 100vh;
+    height: -webkit-fill-available;
+  }
+  
+  .pay-modal-overlay {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .pay-modal-box {
+    -webkit-transform: translateZ(0); /* Hardware acceleration */
+  }
+}
+
+/* Safari scrollbar fixes for tables */
+.table-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #333;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}
+
+/* Fix for Safari modal animations */
+@supports (-webkit-touch-callout: none) {
+  .pay-modal-overlay {
+    animation: none; /* Disable animations if they cause issues */
+  }
+}
+
+/* ==================== */
+/* МОБИЛЬНАЯ АДАПТАЦИЯ */
+/* ==================== */
+@media (max-width: 768px) {
+  /* Заставляем фильтры переноситься */
+  .filters-row {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  
+  .filter-item {
+    min-width: 100px !important;
+    max-width: 120px !important;
+  }
+  
+  /* Уменьшаем карточки статистики */
+  .card-container {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    gap: 8px;
+    padding-bottom: 5px;
+  }
+  
+  .card {
+    min-width: 120px !important;
+    padding: 10px !important;
+  }
+  
+  /* Кнопки Login/Info */
+  .safari-buttons-fix {
+    width: auto !important;
+    flex-direction: row !important;
+    top: 5px !important;
+    right: 5px !important;
+    gap: 5px !important;
+  }
+}
+
+/* Фикс горизонтального скролла для iOS */
+@supports (-webkit-touch-callout: none) {
+  .table-responsive {
+    overflow-x: scroll !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  .table-responsive table {
+    min-width: 1100px !important;
+  }
+}
+
+/* Уменьшаем карточки статистики на мобильных */
+@media (max-width: 768px) {
+  .card-container {
+    overflow-x: auto;
+    padding-bottom: 10px;
+    margin: 0 -5px;
+  }
+  
+  .card {
+    min-width: 110px !important;
+    padding: 8px !important;
+    font-size: 11px !important;
+  }
+  
+  .card-title {
+    font-size: 10px !important;
+  }
+  
+  .card-count {
+    font-size: 14px !important;
+  }
+}
+
+/* App.css - ДОПОЛНЯЕМ существующий файл */
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+/* Styles for closing modal windows */
+
+.pay-modal-overlay {
+  position: fixed; 
+  inset: 0;
+  background: rgba(0,0,0,.8);
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  z-index: 1000;
+}
+
+.pay-modal-box {
+  background: #1e1e1e; 
+  color: #f0f0f0;
+  border-radius: 8px;
+  padding: 32px 36px; 
+  min-width: 400px; 
+  max-width: 90vw;
+  font-size: 18px; 
+  position: relative;
+  box-shadow: 0 8px 30px rgba(0,0,0,.6);
+}
+
+.pay-modal-close {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  background: none;
+  border: none;
+  color: #f0f0f0;
+  font-size: 24px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.pay-modal-close:hover {
+  color: #FFC107 !important;
+  background-color: rgba(255, 193, 7, 0.1);
+}
+
+.pay-modal-close:focus,
+.pay-modal-close:active {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  background-color: transparent;
+  color: #f0f0f0;
+}
+
+.pay-modal-close:focus-visible {
+  outline: 2px solid #FFC107;
+  outline-offset: 2px;
+}
+
+.pay-modal-title {
+  margin: 0 0 24px; 
+  font-size: 22px; 
+  font-weight: 600;
+  color: #FFC107;
+  text-align: center;
+}
+
+/* Убираем стандартный focus для кликов, но оставляем для клавиатуры */
+button:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Оставляем focus только для навигации с клавиатуры */
+button:focus-visible {
+  outline: 2px solid #FFC107 !important;
+  outline-offset: 2px !important;
+}
+
+.reset-button:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* ==================== */
+/* SAFARI-SPECIFIC FIXES */
+/* ==================== */
+
+/* Fix for Safari viewport height issues */
+@supports (-webkit-touch-callout: none) {
+  #root {
+    height: 100vh;
+    height: -webkit-fill-available;
+  }
+  
+  .pay-modal-overlay {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .pay-modal-box {
+    -webkit-transform: translateZ(0); /* Hardware acceleration */
+  }
+}
+
+/* Safari scrollbar fixes for tables */
+.table-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #333;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}
+
+/* Fix for Safari modal animations */
+@supports (-webkit-touch-callout: none) {
+  .pay-modal-overlay {
+    animation: none; /* Disable animations if they cause issues */
+  }
+}
+
+/* ==================== */
+/* МОБИЛЬНАЯ АДАПТАЦИЯ */
+/* ==================== */
+@media (max-width: 768px) {
+  #root {
+    padding: 0 0.5rem;
+    max-width: 100%;
+  }
+  
+  /* Заставляем фильтры переноситься */
+  .filters-row {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  
+  .filter-item {
+    min-width: 100px !important;
+    max-width: 120px !important;
+  }
+  
+  /* Уменьшаем карточки статистики */
+  .card-container {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    gap: 8px;
+    padding-bottom: 5px;
+  }
+  
+  .card {
+    min-width: 120px !important;
+    padding: 10px !important;
+  }
+  
+  /* Кнопки Login/Info */
+  .safari-buttons-fix {
+    width: auto !important;
+    flex-direction: row !important;
+    top: 5px !important;
+    right: 5px !important;
+    gap: 5px !important;
+  }
+  
+  /* Уменьшаем модальные окна */
+  .pay-modal-box {
+    min-width: 300px !important;
+    padding: 20px 24px !important;
+    margin: 10px !important;
+    font-size: 16px !important;
+  }
+  
+  .pay-modal-title {
+    font-size: 18px !important;
+    margin-bottom: 16px !important;
+  }
+}
+
+/* Фикс горизонтального скролла для iOS */
+@supports (-webkit-touch-callout: none) {
+  .table-responsive {
+    overflow-x: scroll !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  .table-responsive table {
+    min-width: 1100px !important;
+  }
+}
+
+/* Уменьшаем карточки статистики на мобильных */
+@media (max-width: 768px) {
+  .card-container {
+    overflow-x: auto;
+    padding-bottom: 10px;
+    margin: 0 -5px;
+  }
+  
+  .card {
+    min-width: 110px !important;
+    padding: 8px !important;
+    font-size: 11px !important;
+  }
+  
+  .card-title {
+    font-size: 10px !important;
+  }
+  
+  .card-count {
+    font-size: 14px !important;
+  }
+}
+
+/* Дополнительные мобильные улучшения */
+@media (max-width: 480px) {
+  .safari-buttons-fix {
+    top: 2px !important;
+    right: 2px !important;
+    gap: 4px !important;
+  }
+  
+  .pay-modal-box {
+    min-width: 280px !important;
+    padding: 16px 20px !important;
+    font-size: 14px !important;
+  }
+  
+  .pay-modal-title {
+    font-size: 16px !important;
+  }
+  
+  .pay-modal-close {
+    right: 8px;
+    top: 8px;
+    font-size: 20px;
+  }
+}
+

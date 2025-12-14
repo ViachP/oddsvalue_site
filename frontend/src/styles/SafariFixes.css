@@ -1,0 +1,230 @@
+/* ==================== */
+/* GLOBAL SAFARI FIXES */
+/* ==================== */
+
+@supports (-webkit-touch-callout: none) {
+  /* КРИТИЧЕСКИЕ ФИКСЫ ЦВЕТОВ ДЛЯ SAFARI */
+  
+  /* Фон для всей таблицы и ячеек */
+  table {
+    background-color: #282c34 !important;
+    border-spacing: 0 !important; /* Убираем пробелы между ячейками */
+  }
+  
+  th, td {
+    background-color: #282c34 !important;
+    color: white !important;
+    border-color: #444 !important;
+    font-size: 14px !important; /* Фиксированный размер для iOS */
+  }
+  
+  /* Заголовки таблицы */
+  th {
+    background-color: #1a1c22 !important;
+    color: white !important;
+  }
+  
+  /* Чекбоксы в Safari на iOS */
+  input[type="checkbox"] {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    background-color: #333 !important;
+    border: 1px solid #fff !important;
+    border-radius: 2px !important;
+    width: 18px !important; /* Увеличиваем для тапа */
+    height: 18px !important;
+    min-height: 18px !important; /* Важно для iOS */
+    margin: 0 !important;
+    vertical-align: middle !important;
+  }
+  
+  input[type="checkbox"]:checked {
+    background-color: #333 !important;
+    border-color: #fff !important;
+  }
+  
+  input[type="checkbox"]:checked::before {
+    content: "✓" !important;
+    color: #fff !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
+  }
+  
+  /* Селекты в Safari */
+  select {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    background-color: #333 !important;
+    color: white !important;
+    border: 1px solid #555 !important;
+    border-radius: 3px !important;
+    padding: 8px 25px 8px 10px !important;
+    font-size: 14px !important;
+    min-height: 36px !important; /* Минимальная высота для тапа */
+  }
+  
+  /* Инпуты и текстовые поля */
+  input, textarea {
+    background-color: #333 !important;
+    color: white !important;
+    border: 1px solid #555 !important;
+    font-size: 14px !important;
+    min-height: 36px !important;
+  }
+  
+  /* Кнопки */
+  button {
+    background-color: #007bff !important;
+    color: white !important;
+    border: 1px solid #0056b3 !important;
+    min-height: 44px !important; /* Минимальный размер для тапа Apple */
+    padding: 12px 20px !important;
+  }
+  
+  /* Убираем синее подсвечивание при тапе */
+  a, button, input, textarea, select {
+    -webkit-tap-highlight-color: transparent !important;
+    /* tap-highlight-color удаляем - это невалидное свойство */
+  }
+  
+  /* Фикс для sticky elements в Safari */
+  .sticky-element {
+    position: -webkit-sticky;
+    position: sticky;
+  }
+  
+  /* Fix for flexbox in Safari */
+  .flex-container {
+    display: -webkit-flex;
+    display: flex;
+  }
+  
+  /* Fix for grid in Safari */
+  .grid-container {
+    display: -webkit-grid;
+    display: grid;
+  }
+  
+  /* Improve scrolling performance */
+  .scroll-container {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Fix for viewport height issues on iOS */
+  .full-height {
+    height: 100vh;
+    height: -webkit-fill-available;
+  }
+
+  /* Ensure buttons have proper z-index */
+  .safari-buttons-fix {
+    z-index: 1000 !important;
+  }
+
+  /* Fix for button focus in Safari */
+  button:focus {
+    outline: 2px solid #FFC107;
+    outline-offset: 2px;
+  }
+}
+
+/* ============================= */
+/* УНИВЕРСАЛЬНЫЕ ЧЕКБОКСЫ ДЛЯ ВСЕХ БРАУЗЕРОВ */
+/* ============================= */
+
+input[type="checkbox"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-color: #333;
+  border: 1px solid #fff;
+  border-radius: 2px;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  min-height: 16px;
+  position: relative;
+  cursor: pointer;
+  vertical-align: middle;
+  margin: 0 4px 0 0;
+}
+
+input[type="checkbox"]:checked {
+  background-color: #333;
+  border-color: #fff;
+}
+
+input[type="checkbox"]:checked::before {
+  content: "✓";
+  color: #fff;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+input[type="checkbox"]:hover {
+  border-color: #FFC107;
+}
+
+/* Убираем дефолтный фокус */
+input[type="checkbox"]:focus,
+input[type="checkbox"]:focus-visible {
+  outline: none;
+  box-shadow: none;
+  border-color: #FFC107;
+}
+
+/* ============================= */
+/* МЕДИА-ЗАПРОСЫ ДЛЯ МОБИЛЬНЫХ */
+/* ============================= */
+
+@media (max-width: 768px) {
+  /* Адаптивная таблица */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -10px;
+    padding: 0 10px;
+  }
+  
+  /* Увеличиваем элементы для тапа */
+  input, select, button {
+    min-height: 40px !important;
+    font-size: 14px !important;
+  }
+  
+  /* Фикс для iOS клавиатуры */
+  input:focus, select:focus, textarea:focus {
+    font-size: 16px !important; /* Предотвращает zoom в iOS */
+  }
+  
+  /* Фикс для нижнего отступа при клавиатуре */
+  .keyboard-open-fix {
+    padding-bottom: env(safe-area-inset-bottom) !important;
+  }
+}
+
+/* ============================= */
+/* БЕЗОПАСНЫЕ ОБЛАСТИ ДЛЯ NOTCH */
+/* ============================= */
+
+@supports (padding: max(0px)) {
+  body, .App, .main-container {
+    padding-left: min(0vmin, env(safe-area-inset-left)) !important;
+    padding-right: min(0vmin, env(safe-area-inset-right)) !important;
+    padding-top: min(0vmin, env(safe-area-inset-top)) !important;
+    padding-bottom: min(0vmin, env(safe-area-inset-bottom)) !important;
+  }
+  
+  .sticky-header {
+    padding-top: max(10px, env(safe-area-inset-top)) !important;
+  }
+}

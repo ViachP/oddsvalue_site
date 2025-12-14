@@ -2,23 +2,27 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { League, Match } from './types';
 import axios from 'axios';
-import { useCascadingFilters, type FilterState } from './useCascadingFilters';
+import { useCascadingFilters } from './useCascadingFilters';
+import type { FilterState } from './useCascadingFilters';
 import AccessModal from './Auth/AccessModal';
 import LoginModal from './Auth/LoginModal';
 import RenewModal from './Auth/RenewModal';
 import { PaymentModal } from './PaymentModal';
 import { useAuth } from './../contexts/AuthContext';
+import { useMobileDetection } from './../hooks/useMobileDetection';
 
 // стили
 import {
-  cellStyle, cellStyle_2, activeCardStyle, teamCellStyle, verticalHeaderStyle,
-  fixedWidthColumnStyle, cardContainerStyle, cardStyle, cardCountStyle,
-  cardTitleStyle, cardRoiStyle, topBlockStyle, searchResultsStyle,
-  searchResultItemStyle, tableStyle, filtersContainerStyle, filtersRowStyle,
+  cellStyle, cellStyle_2,  teamCellStyle, fixedWidthColumnStyle, 
+  topBlockStyle, searchResultsStyle, tableStyle, filtersContainerStyle, filtersRowStyle,
   filterItemStyle, labelStyle, checkboxLabelStyle, inputStyle, resetButtonStyle,
   stickyHeaderRowStyle, tableContainerStyle, checkboxDropdownStyle,
   checkboxItemStyle, customCheckboxStyle, customCheckboxCheckedStyle,
-  selectWithDropdownStyle, checkboxDropdownWideStyle, leagueHeaderStyle
+  selectWithDropdownStyle, checkboxDropdownWideStyle,  searchResultItemStyle,
+  // МОБИЛЬНЫЕ СТИЛИ
+  mobileTableContainerStyle, mobileTableStyle, mobileCellStyle, mobileTeamCellStyle, mobileButtonStyle,
+  mobileCellStyleEnhanced, mobileTeamCellStyleEnhanced
+  // mobileVerticalHeaderStyle,verticalHeaderStyle, leagueHeaderStyle,
 } from './MatchList.styles';
 
 interface Props {
@@ -26,18 +30,100 @@ interface Props {
   setActiveModal: (modal: 'none' | 'access' | 'login' | 'renew' | 'payment') => void;
 }
 
-export default function MatchList({ activeModal, setActiveModal }: Props) {
+export default function MatchList({ activeModal, setActiveModal }: Props) { 
+  const isMobile = useMobileDetection();
+  const isVerySmallScreen = isMobile && (typeof window !== 'undefined' && window.innerWidth < 400);
+  // const isIOS = typeof window !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent);
+
+  const [isIOS, setIsIOS] = useState(false);
+  
+  // Динамические стили в зависимости от устройства
+  const currentButtonStyle = isMobile ? mobileButtonStyle : resetButtonStyle;
+  // const currentVerticalHeaderStyle = isMobile ? mobileVerticalHeaderStyle : verticalHeaderStyle;
+  // const currentVerticalHeaderStyle = isMobile 
+  // ? { 
+  //     ...mobileVerticalHeaderStyle,
+  //     backgroundColor: '#34495e', // Темный фон для заголовков
+  //     color: 'white',
+  //     border: '1px solid #444'
+  //   }
+  // : verticalHeaderStyle;
+
+  const stickyHeaderStyle = isMobile
+  ? {
+      ...stickyHeaderRowStyle,
+      backgroundColor: '#2c3e50', // Темный фон для sticky заголовка  #34495e
+      color: 'white'
+    }
+  : stickyHeaderRowStyle;
+
+  // const containerStyle = isMobile 
+  //   ? { ...tableContainerStyle, ...mobileTableContainerStyle }
+  //   : tableContainerStyle;
+
+  const containerStyle = isMobile 
+    ? { ...tableContainerStyle, ...mobileTableContainerStyle }
+    : { 
+        ...tableContainerStyle,
+        overflowX: 'hidden' as const, 
+      };
+
+  const currentTableStyle = isMobile 
+    ? { ...tableStyle, ...mobileTableStyle } 
+    : tableStyle;
+
+  const tableHeaderStyle = {
+      ...fixedWidthColumnStyle,
+      backgroundColor: '#2c3e50',
+      color: 'white',
+      border: '1px solid #444',
+      padding: isMobile ? '3px 1px' : '10px 1px', // Было и оставляем
+      fontSize: isMobile ? '10px' : '12px', // Возвращаем 12px
+      fontWeight: 'bold',
+  };
+  
+  const currentCellStyle = isVerySmallScreen 
+    ? mobileCellStyleEnhanced 
+    : (isMobile ? mobileCellStyle : cellStyle);
+  const currentTeamCellStyle = isVerySmallScreen
+    ? mobileTeamCellStyleEnhanced
+    : (isMobile ? mobileTeamCellStyle : teamCellStyle);
+
+  const { user } = useAuth();
+
+  const hasAccess = user && (
+    user.role === 'admin' ||
+    (user.role === 'user' && user.expiresAt && new Date(user.expiresAt) > new Date())
+  );
+
+  const isExpired = user && !hasAccess;
+
   /* ----------  состояния  ---------- */
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<string[]>([]);
-  const [allMatchesCache, setAllMatchesCache] = useState<Match[]>(() => {
-    try {
-      const cached = localStorage.getItem('matchesCache');
-      const parsed = cached ? JSON.parse(cached) : [];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch { return []; }
-  });
+  const [allMatchesCache, setAllMatchesCache] = useState<Match[]>([]); // ПРОСТО ПУСТОЙ МАССИВ
+  // const [allMatchesCache, setAllMatchesCache] = useState<Match[]>(() => {
+  //   // Для мобильных устройств не используем кэш
+  //   if (isMobile || isIOS || typeof window === 'undefined') return [];
+
+  //   // Для гостей на ПК тоже не используем кэш
+  //   if (!user || !hasAccess) return [];
+    
+  //   try {
+  //     const cached = localStorage.getItem('matchesCache');
+  //     const parsed = cached ? JSON.parse(cached) : [];
+  //     return Array.isArray(parsed) ? parsed : [];
+  //   } catch { return []; }
+  // });
   const [highlight, setHighlight] = useState<null | 'home' | 'draw' | 'away'>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isIOSDevice = /iPhone|iPad|iPod/.test(navigator.userAgent);
+      setIsIOS(isIOSDevice);
+    }
+  }, []);
 
   /* ----------  фильтры  ---------- */
   const [selectedLeagues, setSelectedLeagues] = useState<string[]>([]);
@@ -87,54 +173,48 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
 
   const API_BASE_URL = 'https://oddsvalue.pro';
 
-  const { user } = useAuth();
-
-  const hasAccess = user && (
-    user.role === 'admin' ||
-    (user.role === 'user' && user.expiresAt && new Date(user.expiresAt) > new Date())
-  );
-
-  // const isGuest   = !user;                    // вообще не заходил
-  const isExpired = user && !hasAccess;       // заходил, но подписка кончилась
-
   const handlePaymentFromRenew = () => {
-    setActiveModal('payment'); // напрямую открываем PaymentModal
+    setActiveModal('payment');
+  };
+
+  // Функция проверки доступа
+  const checkAccess = () => {
+    if (!hasAccess) {
+      if (isExpired) {
+        setActiveModal('renew');
+      } else {
+        setActiveModal('access');
+      }
+      return false;
+    }
+    return true;
   };
 
   const handleFilterClick = (filterKey: string) => {
-    if (hasAccess) {
-      /* ✅  доступ есть – работаем как раньше */
-      const mapping: Record<string, React.Dispatch<React.SetStateAction<boolean>>> = {
-        leagues: setShowLeaguesCheckboxes,
-        one_o: setShowOneOCheckboxes,
-        one_e: setShowOneEsCheckboxes,
-        x_o: setShowXOCheckboxes,
-        x_e: setShowXEsCheckboxes,
-        two_o: setShowTwoOCheckboxes,
-        two_e: setShowTwoEsCheckboxes,
-        bts_o: setShowBtsOCheckboxes,
-        bts_e: setShowBtsEsCheckboxes,
-        bts_no_o: setShowBtsNoOCheckboxes,
-        bts_no_e: setShowBtsNoEsCheckboxes,
-        over_o: setShowOverOCheckboxes,
-        over_e: setShowOverEsCheckboxes,
-        under_o: setShowUnderOCheckboxes,
-        under_e: setShowUnderEsCheckboxes,
-        first_half: setShowFirstHalfsCheckboxes,
-        match: setShowMatchesCheckboxes,
-        bts_result: setShowBtsResultCheckboxes,
-        total_goals: setShowTotalGoalsCheckboxes,
-      };
-      mapping[filterKey]?.(prev => !prev);
-      return;
-    }
+    if (!checkAccess()) return;
 
-    /* ❌  доступа нет – решаем, какую модалку показать */
-    if (isExpired) {
-      setActiveModal('renew');  // подписка кончилась
-    } else {
-      setActiveModal('access');  // гость
-    }
+    const mapping: Record<string, React.Dispatch<React.SetStateAction<boolean>>> = {
+      leagues: setShowLeaguesCheckboxes,
+      one_o: setShowOneOCheckboxes,
+      one_e: setShowOneEsCheckboxes,
+      x_o: setShowXOCheckboxes,
+      x_e: setShowXEsCheckboxes,
+      two_o: setShowTwoOCheckboxes,
+      two_e: setShowTwoEsCheckboxes,
+      bts_o: setShowBtsOCheckboxes,
+      bts_e: setShowBtsEsCheckboxes,
+      bts_no_o: setShowBtsNoOCheckboxes,
+      bts_no_e: setShowBtsNoEsCheckboxes,
+      over_o: setShowOverOCheckboxes,
+      over_e: setShowOverEsCheckboxes,
+      under_o: setShowUnderOCheckboxes,
+      under_e: setShowUnderEsCheckboxes,
+      first_half: setShowFirstHalfsCheckboxes,
+      match: setShowMatchesCheckboxes,
+      bts_result: setShowBtsResultCheckboxes,
+      total_goals: setShowTotalGoalsCheckboxes,
+    };
+    mapping[filterKey]?.(prev => !prev);
   };
 
   /* ----------  хук-фильтры  ---------- */
@@ -172,6 +252,8 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
 
   /* ----------  функции  ---------- */
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!checkAccess()) return;
+    
     const term = e.target.value;
     setSearchTerm(term);
     if (term.length > 1) {
@@ -182,12 +264,16 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
   };
 
   const handleTeamSelect = (teamName: string) => {
+    if (!checkAccess()) return;
+    
     setSelectedTeam([teamName]);
     setSearchTerm(teamName);
     setSearchResults([]);
   };
 
   const handleCheckboxChange = (filterType: string, value: string) => {
+    if (!checkAccess()) return;
+
     const setters: { [key: string]: React.Dispatch<React.SetStateAction<string[]>> } = {
       leagues: setSelectedLeagues,
       one_o: setSelectedOneOs,
@@ -244,27 +330,27 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
     setSelectedBtsResult([]);
     setSelectedTotalGoals([]);
     setShowHome(false);
-    setShowAway(false)
+    setShowAway(false);
 
-    setShowLeaguesCheckboxes(false)
-    setShowOneOCheckboxes(false)
-    setShowOneEsCheckboxes(false)
-    setShowXOCheckboxes(false)
-    setShowXEsCheckboxes(false)
-    setShowTwoOCheckboxes(false)
-    setShowTwoEsCheckboxes(false)
-    setShowBtsOCheckboxes(false)
-    setShowBtsEsCheckboxes(false)
-    setShowBtsNoOCheckboxes(false)
-    setShowBtsNoEsCheckboxes(false)
-    setShowOverOCheckboxes(false)
-    setShowOverEsCheckboxes(false)
-    setShowUnderOCheckboxes(false)
-    setShowUnderEsCheckboxes(false)
-    setShowFirstHalfsCheckboxes(false)
-    setShowMatchesCheckboxes(false)
-    setShowBtsResultCheckboxes(false)
-    setShowTotalGoalsCheckboxes(false)
+    setShowLeaguesCheckboxes(false);
+    setShowOneOCheckboxes(false);
+    setShowOneEsCheckboxes(false);
+    setShowXOCheckboxes(false);
+    setShowXEsCheckboxes(false);
+    setShowTwoOCheckboxes(false);
+    setShowTwoEsCheckboxes(false);
+    setShowBtsOCheckboxes(false);
+    setShowBtsEsCheckboxes(false);
+    setShowBtsNoOCheckboxes(false);
+    setShowBtsNoEsCheckboxes(false);
+    setShowOverOCheckboxes(false);
+    setShowOverEsCheckboxes(false);
+    setShowUnderOCheckboxes(false);
+    setShowUnderEsCheckboxes(false);
+    setShowFirstHalfsCheckboxes(false);
+    setShowMatchesCheckboxes(false);
+    setShowBtsResultCheckboxes(false);
+    setShowTotalGoalsCheckboxes(false);
   };
 
   const formatRoi = (roi: number | null) => {
@@ -275,9 +361,9 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
   };
 
   const getFullLeagueName = (league: string): string => {
-    if (!league) return ''
-    return league.split(' - ')[0].trim()
-  }
+    if (!league) return '';
+    return league.split(' - ')[0].trim();
+  };
 
   /* ----------  dropdown-рендер  ---------- */
   const renderCheckboxFilter = (
@@ -286,7 +372,6 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
     availableValues: string[],
     filterType: string, 
     showDropdown: boolean,
-    _setShowDropdown: React.Dispatch<React.SetStateAction<boolean>>,
     dataAttribute: string
   ) => {
     const getDisplayText = () => {
@@ -323,7 +408,7 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
         <label style={labelStyle}>{label}</label>
         <div style={{ position: 'relative' }}>
           <button
-            onClick={() => handleFilterClick(filterType)} // ← БЛОКИРОВКА
+            onClick={() => handleFilterClick(filterType)}
             style={selectWithDropdownStyle}
             title={getTitle()}
           >
@@ -340,7 +425,7 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
                     <input
                       type="checkbox"
                       checked={selectedValues.includes(value)}
-                      onChange={() => handleCheckboxChange(filterType as string, value)}
+                      onChange={() => handleCheckboxChange(filterType, value)}
                       style={{ ...customCheckboxStyle, ...(selectedValues.includes(value) ? customCheckboxCheckedStyle : {}) }}
                     />
                     <span title={displayValue}>{displayValue}</span>
@@ -401,16 +486,21 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
     showBtsResultCheckboxes, showTotalGoalsCheckboxes
   ]);
 
-  const isCacheFresh = () => {
-    const ts = localStorage.getItem('cacheTimestamp');
-    return ts && Date.now() - parseInt(ts) < 5 * 60 * 1000;
-  };
-
-  const fetchMatches = async (useCache = false) => {
+  // Функция загрузки матчей
+  const fetchMatches = async () => {
+    setIsLoading(true);
     try {
-      if (useCache && allMatchesCache.length > 0) return allMatchesCache;
-
       const params = new URLSearchParams();
+
+      // ВСЕГДА добавляем лимит для теста
+      params.append('limit', '20');
+      console.log('🔄 SENDING limit=20 to API');
+      // Добавляем лимит если указан
+      // if (limit !== undefined) {
+      //   params.append('limit', limit.toString());
+      // }
+      
+      // Фильтры по команде
       if (selectedTeam.length) {
         params.append('team', selectedTeam[0]);
         const loc = [];
@@ -418,107 +508,350 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
         if (showAway) loc.push('away');
         if (loc.length) params.append('location', loc.join(','));
       }
-      const { data } = await axios.get<Match[]>(`${API_BASE_URL}/api/matches/?${params}`);
-      return data;
-    } catch {
+
+      console.log('Fetching matches with params:', params.toString()); // Для отладки
+      console.log('🌐 Full URL:', `${API_BASE_URL}/api/matches/?${params}`);
+
+      // const { data } = await axios.get<Match[]>(
+      //   `${API_BASE_URL}/api/matches/?${params}`,
+      //   { timeout: 15000 }
+      // );
+
+      const { data } = await axios.get<{ results: Match[] }>(
+        `${API_BASE_URL}/api/matches/?${params}`,
+        { timeout: 15000 }
+      );
+      
+      console.log('Received matches:', data?.results?.length); // Для отладки
+      return data.results;
+    } catch (error) {
+      console.error('Error fetching matches:', error);
       return [];
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  /* ----------  инициализация  ---------- */
-  useEffect(() => {
-    const init = async () => {
-      console.log('MatchList: init() started'); // ←
+  // Определяем лимит загрузки
+  const getLoadLimit = () => {
+    // ДЛЯ ТЕСТА: ВСЕГДА 20 матчей
+    return 20;
+    // Для мобильных всегда 20 матчей
+    // if (isMobile || isIOS) return 20;
+    
+    // // Для гостей (незалогиненных) всегда 20 матчей
+    // if (!user || !hasAccess) return 20;
+    
+    // // Для залогиненных на ПК - без лимита
+    // return undefined;
+  };
+
+  // Загрузка данных при монтировании
+useEffect(() => {
+  const loadMatches = async () => {
+    // Всегда очищаем кэш для мобильных и iOS
+    if (isMobile || isIOS) {
       try {
-        if (isCacheFresh()) {
-          const cached = localStorage.getItem('matchesCache');
-          if (cached) {
-            const parsed = JSON.parse(cached);
-            if (Array.isArray(parsed)) {
-              setAllMatchesCache(parsed);
-            }
-          }
-        } else {
-          const data = await fetchMatches(false);
-          if (data && Array.isArray(data)) {
-            setAllMatchesCache(data);
-            localStorage.setItem('matchesCache', JSON.stringify(data));
-            localStorage.setItem('cacheTimestamp', Date.now().toString());
-          }
+        localStorage.removeItem('matchesCache');
+        localStorage.removeItem('cacheTimestamp');
+      } catch (e) {}
+    }
+    
+    // Получаем лимит
+    const limit = getLoadLimit();
+    
+    // Загружаем данные
+    const data = await fetchMatches();
+    
+    if (data && Array.isArray(data)) {
+      setAllMatchesCache(data);
+      
+      // Кэшируем только если ПК, залогинен и БЕЗ лимита
+      if (!limit && user && hasAccess && !isMobile && !isIOS) {
+        try {
+          localStorage.setItem('matchesCache', JSON.stringify(data));
+          localStorage.setItem('cacheTimestamp', Date.now().toString());
+        } catch (error) {
+          console.warn('Storage caching error:', error);
         }
-      } catch (error) {
+      }
+    }
+  };
+  
+  // Загружаем только если нет данных
+  if (allMatchesCache.length === 0) {
+    loadMatches();
+  }
+}, [user, hasAccess, isMobile, isIOS]); // Убрать allMatchesCache.length из зависимостей
+
+  // Автоматическая загрузка полной базы после регистрации
+  useEffect(() => {
+    const loadFullDatabaseAfterLogin = async () => {
+      // Если пользователь только что залогинился, это ПК и сейчас отображается только 20 матчей
+      if (user && hasAccess && !isMobile && allMatchesCache.length <= 20) {
+        const fullData = await fetchMatches(); // Без лимита
         
+        if (fullData.length > 0) {
+          setAllMatchesCache(fullData);
+          
+          // Сохраняем в кэш
+          try {
+            localStorage.setItem('matchesCache', JSON.stringify(fullData));
+            localStorage.setItem('cacheTimestamp', Date.now().toString());
+          } catch (error) {
+            console.error('Failed to cache full database:', error);
+          }
+          
+          // Можно показать уведомление
+          console.log(`Full database loaded: ${fullData.length} matches`);
+        }
       }
     };
-    init();
-  }, []);
+    
+    loadFullDatabaseAfterLogin();
+  }, [user, hasAccess, isMobile, allMatchesCache.length]);
 
   /* ----------  рендер  ---------- */
   const topBlockRef = useRef<HTMLDivElement>(null);
 
   const formatOdds = (value: number | null | undefined): string => {
-      return (value || 0).toFixed(2);
+    return (value || 0).toFixed(2);
   };
 
   return (
-    <div style={{ padding: '10px' }}>
-      <div ref={topBlockRef} style={topBlockStyle}>
+    <div style={{ padding: isMobile ? '5px' : '10px' }}>
+      <div ref={topBlockRef} style={topBlockStyle} className="sticky-element">
         {statistics && (
-          <div style={cardContainerStyle}>
-            <div style={cardStyle}>
-              <div style={cardCountStyle}>{statistics.total_matches}</div>
-              <div style={cardTitleStyle}>Total Matches</div>
-              <div style={cardRoiStyle}></div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile 
+              ? 'repeat(8, minmax(40px, 1fr))'
+              : 'repeat(auto-fit, minmax(100px, 1fr))',
+            gap: isMobile ? '3px' : '10px',
+            // marginBottom: isMobile ? '5px' : '5px',
+            backgroundColor: '#333',
+            borderRadius: '8px',
+            padding: isMobile ? '3px' : '10px',
+          }}>
+            
+            {/* 1. Total Matches */}
+            <div style={{
+              backgroundColor: '#444',
+              padding: isMobile ? '3px' : '10px',
+              borderRadius: '8px',
+              textAlign: 'center',
+              color: 'white',
+              fontSize: isMobile ? '9px' : 'inherit',
+              minHeight: isMobile ? '40px' : '80px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{fontSize: isMobile ? '11px' : '1.5em', fontWeight: 'bold'}}>
+                {statistics.total_matches}
+              </div>
+              <div style={{fontSize: isMobile ? '8px' : '0.8em', color: '#bbb'}}>
+                Total Matches
+              </div>
+              <div style={{fontSize: isMobile ? '7px' : '0.7em', fontWeight: 'bold'}}></div>
             </div>
-            <div
-              style={{ ...cardStyle, cursor: 'pointer', ...(highlight === 'home' ? activeCardStyle : undefined) }}
-              onClick={() => setHighlight((prev) => (prev === 'home' ? null : 'home'))}
-            >
-              <div style={cardCountStyle}>{statistics.home_wins_count}</div>
-              <div style={cardTitleStyle}>Home Wins</div>
-              <div style={cardRoiStyle}>{formatRoi(statistics.roi_home)}</div>
+            
+            {/* 2. Home Wins */}
+            <div style={{
+              backgroundColor: '#444',
+              padding: isMobile ? '3px' : '10px',
+              borderRadius: '8px',
+              textAlign: 'center',
+              color: 'white',
+              fontSize: isMobile ? '9px' : 'inherit',
+              minHeight: isMobile ? '40px' : '80px',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              border: highlight === 'home' ? '2px solid #fff' : 'none',
+              boxSizing: 'border-box'
+            }}
+            onClick={() => setHighlight((prev) => (prev === 'home' ? null : 'home'))}>
+              <div style={{fontSize: isMobile ? '11px' : '1.5em', fontWeight: 'bold'}}>
+                {statistics.home_wins_count}
+              </div>
+              <div style={{fontSize: isMobile ? '8px' : '0.8em', color: '#bbb'}}>
+                Home Wins
+              </div>
+              <div style={{fontSize: isMobile ? '7px' : '0.7em', fontWeight: 'bold'}}>
+                {formatRoi(statistics.roi_home)}
+              </div>
             </div>
-            <div
-              style={{ ...cardStyle, cursor: 'pointer', ...(highlight === 'draw' ? activeCardStyle : undefined) }}
-              onClick={() => setHighlight((prev) => (prev === 'draw' ? null : 'draw'))}
-            >
-              <div style={cardCountStyle}>{statistics.draws_count}</div>
-              <div style={cardTitleStyle}>Draws</div>
-              <div style={cardRoiStyle}>{formatRoi(statistics.roi_draw)}</div>
+            
+            {/* 3. Draws */}
+            <div style={{
+              backgroundColor: '#444',
+              padding: isMobile ? '3px' : '10px',
+              borderRadius: '8px',
+              textAlign: 'center',
+              color: 'white',
+              fontSize: isMobile ? '9px' : 'inherit',
+              minHeight: isMobile ? '40px' : '80px',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              border: highlight === 'draw' ? '2px solid #fff' : 'none',
+              boxSizing: 'border-box'
+            }}
+            onClick={() => setHighlight((prev) => (prev === 'draw' ? null : 'draw'))}>
+              <div style={{fontSize: isMobile ? '11px' : '1.5em', fontWeight: 'bold'}}>
+                {statistics.draws_count}
+              </div>
+              <div style={{fontSize: isMobile ? '8px' : '0.8em', color: '#bbb'}}>
+                Draws
+              </div>
+              <div style={{fontSize: isMobile ? '7px' : '0.7em', fontWeight: 'bold'}}>
+                {formatRoi(statistics.roi_draw)}
+              </div>
             </div>
-            <div
-              style={{ ...cardStyle, cursor: 'pointer', ...(highlight === 'away' ? activeCardStyle : undefined) }}
-              onClick={() => setHighlight((prev) => (prev === 'away' ? null : 'away'))}
-            >
-              <div style={cardCountStyle}>{statistics.away_wins_count}</div>
-              <div style={cardTitleStyle}>Away Wins</div>
-              <div style={cardRoiStyle}>{formatRoi(statistics.roi_away)}</div>
+            
+            {/* 4. Away Wins */}
+            <div style={{
+              backgroundColor: '#444',
+              padding: isMobile ? '3px' : '10px',
+              borderRadius: '8px',
+              textAlign: 'center',
+              color: 'white',
+              fontSize: isMobile ? '9px' : 'inherit',
+              minHeight: isMobile ? '40px' : '80px',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              border: highlight === 'away' ? '2px solid #fff' : 'none',
+              boxSizing: 'border-box'
+            }}
+            onClick={() => setHighlight((prev) => (prev === 'away' ? null : 'away'))}>
+              <div style={{fontSize: isMobile ? '11px' : '1.5em', fontWeight: 'bold'}}>
+                {statistics.away_wins_count}
+              </div>
+              <div style={{fontSize: isMobile ? '8px' : '0.8em', color: '#bbb'}}>
+                Away Wins
+              </div>
+              <div style={{fontSize: isMobile ? '7px' : '0.7em', fontWeight: 'bold'}}>
+                {formatRoi(statistics.roi_away)}
+              </div>
             </div>
-            <div style={cardStyle}>
-              <div style={cardCountStyle}>{statistics.bts_yes_count}</div>
-              <div style={cardTitleStyle}>BTS Yes</div>
-              <div style={cardRoiStyle}>{formatRoi(statistics.roi_bts_yes)}</div>
+            
+            {/* 5. BTS Yes */}
+            <div style={{
+              backgroundColor: '#444',
+              padding: isMobile ? '3px' : '10px',
+              borderRadius: '8px',
+              textAlign: 'center',
+              color: 'white',
+              fontSize: isMobile ? '9px' : 'inherit',
+              minHeight: isMobile ? '40px' : '80px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{fontSize: isMobile ? '11px' : '1.5em', fontWeight: 'bold'}}>
+                {statistics.bts_yes_count}
+              </div>
+              <div style={{fontSize: isMobile ? '8px' : '0.8em', color: '#bbb'}}>
+                BTS Yes
+              </div>
+              <div style={{fontSize: isMobile ? '7px' : '0.7em', fontWeight: 'bold'}}>
+                {formatRoi(statistics.roi_bts_yes)}
+              </div>
             </div>
-            <div style={cardStyle}>
-              <div style={cardCountStyle}>{statistics.bts_no_count}</div>
-              <div style={cardTitleStyle}>BTS No</div>
-              <div style={cardRoiStyle}>{formatRoi(statistics.roi_bts_no)}</div>
+            
+            {/* 6. BTS No */}
+            <div style={{
+              backgroundColor: '#444',
+              padding: isMobile ? '3px' : '10px',
+              borderRadius: '8px',
+              textAlign: 'center',
+              color: 'white',
+              fontSize: isMobile ? '9px' : 'inherit',
+              minHeight: isMobile ? '40px' : '80px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{fontSize: isMobile ? '11px' : '1.5em', fontWeight: 'bold'}}>
+                {statistics.bts_no_count}
+              </div>
+              <div style={{fontSize: isMobile ? '8px' : '0.8em', color: '#bbb'}}>
+                BTS No
+              </div>
+              <div style={{fontSize: isMobile ? '7px' : '0.7em', fontWeight: 'bold'}}>
+                {formatRoi(statistics.roi_bts_no)}
+              </div>
             </div>
-            <div style={cardStyle}>
-              <div style={cardCountStyle}>{statistics.over_count}</div>
-              <div style={cardTitleStyle}>Over</div>
-              <div style={cardRoiStyle}>{formatRoi(statistics.roi_over)}</div>
+            
+            {/* 7. Over */}
+            <div style={{
+              backgroundColor: '#444',
+              padding: isMobile ? '3px' : '10px',
+              borderRadius: '8px',
+              textAlign: 'center',
+              color: 'white',
+              fontSize: isMobile ? '9px' : 'inherit',
+              minHeight: isMobile ? '40px' : '80px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{fontSize: isMobile ? '11px' : '1.5em', fontWeight: 'bold'}}>
+                {statistics.over_count}
+              </div>
+              <div style={{fontSize: isMobile ? '8px' : '0.8em', color: '#bbb'}}>
+                Over
+              </div>
+              <div style={{fontSize: isMobile ? '7px' : '0.7em', fontWeight: 'bold'}}>
+                {formatRoi(statistics.roi_over)}
+              </div>
             </div>
-            <div style={cardStyle}>
-              <div style={cardCountStyle}>{statistics.under_count}</div>
-              <div style={cardTitleStyle}>Under</div>
-              <div style={cardRoiStyle}>{formatRoi(statistics.roi_under)}</div>
+            
+            {/* 8. Under */}
+            <div style={{
+              backgroundColor: '#444',
+              padding: isMobile ? '3px' : '10px',
+              borderRadius: '8px',
+              textAlign: 'center',
+              color: 'white',
+              fontSize: isMobile ? '9px' : 'inherit',
+              minHeight: isMobile ? '40px' : '80px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{fontSize: isMobile ? '11px' : '1.5em', fontWeight: 'bold'}}>
+                {statistics.under_count}
+              </div>
+              <div style={{fontSize: isMobile ? '8px' : '0.8em', color: '#bbb'}}>
+                Under
+              </div>
+              <div style={{fontSize: isMobile ? '7px' : '0.7em', fontWeight: 'bold'}}>
+                {formatRoi(statistics.roi_under)}
+              </div>
             </div>
+            
           </div>
         )}
-
-        <div style={filtersContainerStyle}>
-          <div style={filtersRowStyle}>
+        
+        <div style={isMobile ? {
+            ...filtersContainerStyle,
+            overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            margin: '0 -10px',
+            padding: isVerySmallScreen ? '5px' : '10px'
+          } : filtersContainerStyle}>
+          <div style={isMobile ? {
+            ...filtersRowStyle,
+            flexWrap: 'nowrap',
+            minWidth: isVerySmallScreen ? '1000px' : '1200px',
+            gap: isVerySmallScreen ? '5px' : '8px'
+          } : filtersRowStyle} className="filters-row">
             {/* League */}
             {renderCheckboxFilter(
               'League',
@@ -526,7 +859,6 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
               getUniqueLeagues().map((l) => l.id),
               'leagues',
               showLeaguesCheckboxes,
-              setShowLeaguesCheckboxes,
               'leagues-filter'
             )}
 
@@ -538,14 +870,39 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
                 type="text"
                 value={searchTerm}
                 onChange={handleSearchChange}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && searchTerm.trim()) {
+                    if (!checkAccess()) return;
+                    handleTeamSelect(searchTerm.trim());
+                  }
+                }}
                 placeholder="Search..."
                 style={inputStyle}
                 autoComplete="off"
+                onFocus={() => {
+                  if (!hasAccess) {
+                    if (isExpired) {
+                      setActiveModal('renew');
+                    } else {
+                      setActiveModal('access');
+                    }
+                  }
+                }}
               />
               {searchResults.length > 0 && searchTerm.length > 1 && (
                 <ul style={searchResultsStyle}>
                   {searchResults.map((team) => (
-                    <li key={team} onClick={() => handleTeamSelect(team)} style={searchResultItemStyle}>
+                    <li 
+                      key={team} 
+                      onClick={() => handleTeamSelect(team)} 
+                      style={searchResultItemStyle}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLLIElement).style.backgroundColor = '#555';
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLLIElement).style.backgroundColor = '#333';
+                      }}
+                    >
                       {team}
                     </li>
                   ))}
@@ -555,87 +912,119 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
 
             {/* Home / Away */}
             <div style={filterItemStyle}>
-              <div style={{ display: 'flex', gap: '5px', marginTop: '16px' }}>
-                <label style={checkboxLabelStyle}>
-                  <input type="checkbox" checked={showHome} onChange={() => setShowHome((v) => !v)} style={{ marginRight: '3px' }} />
+              <div style={{ 
+                display: 'flex', 
+                gap: '5px', 
+                marginTop: isVerySmallScreen ? '12px' : '16px',
+                flexWrap: isVerySmallScreen ? 'wrap' : 'nowrap'
+              }}>
+                <label style={{...checkboxLabelStyle, fontSize: isVerySmallScreen ? '10px' : '0.75em'}}>
+                  <input 
+                    type="checkbox" 
+                    checked={showHome} 
+                    onChange={() => {
+                      if (!checkAccess()) return;
+                      setShowHome((v) => !v);
+                    }} 
+                    style={{ marginRight: '3px' }}
+                  />
                   Home
                 </label>
-                <label style={checkboxLabelStyle}>
-                  <input type="checkbox" checked={showAway} onChange={() => setShowAway((v) => !v)} style={{ marginRight: '3px' }} />
+                <label style={{...checkboxLabelStyle, fontSize: isVerySmallScreen ? '10px' : '0.75em'}}>
+                  <input 
+                    type="checkbox" 
+                    checked={showAway} 
+                    onChange={() => {
+                      if (!checkAccess()) return;
+                      setShowAway((v) => !v);
+                    }} 
+                    style={{ marginRight: '3px' }}
+                  />
                   Away
                 </label>
               </div>
             </div>
 
             {/* Коэффициенты и прочие фильтры */}
-            {renderCheckboxFilter('1(o)', selectedOneOs, getUniqueOneOs(), 'one_o', showOneOCheckboxes, setShowOneOCheckboxes, 'one-o-filter')}
-            {renderCheckboxFilter('1(e)', selectedOneEs, getUniqueOneEs(), 'one_e', showOneEsCheckboxes, setShowOneEsCheckboxes, 'one-e-filter')}
-            {renderCheckboxFilter('X(o)', selectedXOs, getUniqueXOs(), 'x_o', showXOCheckboxes, setShowXOCheckboxes, 'x-o-filter')}
-            {renderCheckboxFilter('X(e)', selectedXEs, getUniqueXEs(), 'x_e', showXEsCheckboxes, setShowXEsCheckboxes, 'x-e-filter')}
-            {renderCheckboxFilter('2(o)', selectedTwoOs, getUniqueTwoOs(), 'two_o', showTwoOCheckboxes, setShowTwoOCheckboxes, 'two-o-filter')}
-            {renderCheckboxFilter('2(e)', selectedTwoEs, getUniqueTwoEs(), 'two_e', showTwoEsCheckboxes, setShowTwoEsCheckboxes, 'two-e-filter')}
-            {renderCheckboxFilter('BTS(o)', selectedBtsOs, getUniqueBtsOs(), 'bts_o', showBtsOCheckboxes, setShowBtsOCheckboxes, 'bts-o-filter')}
-            {renderCheckboxFilter('BTS(e)', selectedBtsEs, getUniqueBtsEs(), 'bts_e', showBtsEsCheckboxes, setShowBtsEsCheckboxes, 'bts-e-filter')}
-            {renderCheckboxFilter('BTS_no(o)', selectedBtsNoOs, getUniqueBtsNoOs(), 'bts_no_o', showBtsNoOCheckboxes, setShowBtsNoOCheckboxes, 'bts-no-o-filter')}
-            {renderCheckboxFilter('BTS_no(e)', selectedBtsNoEs, getUniqueBtsNoEs(), 'bts_no_e', showBtsNoEsCheckboxes, setShowBtsNoEsCheckboxes, 'bts-no-e-filter')}
-            {renderCheckboxFilter('Over(o)', selectedOverOs, getUniqueOverOs(), 'over_o', showOverOCheckboxes, setShowOverOCheckboxes, 'over-o-filter')}
-            {renderCheckboxFilter('Over(e)', selectedOverEs, getUniqueOverEs(), 'over_e', showOverEsCheckboxes, setShowOverEsCheckboxes, 'over-e-filter')}
-            {renderCheckboxFilter('Under(o)', selectedUnderOs, getUniqueUnderOs(), 'under_o', showUnderOCheckboxes, setShowUnderOCheckboxes, 'under-o-filter')}
-            {renderCheckboxFilter('Under(e)', selectedUnderEs, getUniqueUnderEs(), 'under_e', showUnderEsCheckboxes, setShowUnderEsCheckboxes, 'under-e-filter')}
-            {renderCheckboxFilter('1H', selectedFirstHalfs, getUniqueFirstHalfs(), 'first_half', showFirstHalfsCheckboxes, setShowFirstHalfsCheckboxes, 'first-half-filter')}
-            {renderCheckboxFilter('FT', selectedMatches, getUniqueMatches(), 'match', showMatchesCheckboxes, setShowMatchesCheckboxes, 'matches-filter')}
-            {renderCheckboxFilter('BTS', selectedBtsResult, ['Yes', 'No'], 'bts_result', showBtsResultCheckboxes, setShowBtsResultCheckboxes, 'bts-result-filter')}
-            {renderCheckboxFilter('Total', selectedTotalGoals, ['Over 1.5', 'Under 1.5', 'Over 2.5', 'Under 2.5', 'Over 3.5', 'Under 3.5'], 'total_goals', showTotalGoalsCheckboxes, setShowTotalGoalsCheckboxes, 'total-goals-filter')}
+            {renderCheckboxFilter('1_o', selectedOneOs, getUniqueOneOs(), 'one_o', showOneOCheckboxes, 'one-o-filter')}
+            {renderCheckboxFilter('1_e', selectedOneEs, getUniqueOneEs(), 'one_e', showOneEsCheckboxes, 'one-e-filter')}
+            {renderCheckboxFilter('X_o', selectedXOs, getUniqueXOs(), 'x_o', showXOCheckboxes, 'x-o-filter')}
+            {renderCheckboxFilter('X_e', selectedXEs, getUniqueXEs(), 'x_e', showXEsCheckboxes, 'x-e-filter')}
+            {renderCheckboxFilter('2_o', selectedTwoOs, getUniqueTwoOs(), 'two_o', showTwoOCheckboxes,  'two-o-filter')}
+            {renderCheckboxFilter('2_e', selectedTwoEs, getUniqueTwoEs(), 'two_e', showTwoEsCheckboxes, 'two-e-filter')}
+            {renderCheckboxFilter('B_o', selectedBtsOs, getUniqueBtsOs(), 'bts_o', showBtsOCheckboxes, 'bts-o-filter')}
+            {renderCheckboxFilter('B_e', selectedBtsEs, getUniqueBtsEs(), 'bts_e', showBtsEsCheckboxes, 'bts-e-filter')}
+            {renderCheckboxFilter('Bno_o', selectedBtsNoOs, getUniqueBtsNoOs(), 'bts_no_o', showBtsNoOCheckboxes, 'bts-no-o-filter')}
+            {renderCheckboxFilter('Bno_e', selectedBtsNoEs, getUniqueBtsNoEs(), 'bts_no_e', showBtsNoEsCheckboxes,  'bts-no-e-filter')}
+            {renderCheckboxFilter('Ov_o', selectedOverOs, getUniqueOverOs(), 'over_o', showOverOCheckboxes, 'over-o-filter')}
+            {renderCheckboxFilter('Ov_e', selectedOverEs, getUniqueOverEs(), 'over_e', showOverEsCheckboxes,'over-e-filter')}
+            {renderCheckboxFilter('Un_o', selectedUnderOs, getUniqueUnderOs(), 'under_o', showUnderOCheckboxes,'under-o-filter')}
+            {renderCheckboxFilter('Un_e', selectedUnderEs, getUniqueUnderEs(), 'under_e', showUnderEsCheckboxes, 'under-e-filter')}
+            {renderCheckboxFilter('1H', selectedFirstHalfs, getUniqueFirstHalfs(), 'first_half', showFirstHalfsCheckboxes, 'first-half-filter')}
+            {renderCheckboxFilter('FT', selectedMatches, getUniqueMatches(), 'match', showMatchesCheckboxes, 'matches-filter')}
+            {renderCheckboxFilter('BTS', selectedBtsResult, ['Yes', 'No'], 'bts_result', showBtsResultCheckboxes, 'bts-result-filter')}
+            {renderCheckboxFilter('Total', selectedTotalGoals, ['Over 1.5', 'Under 1.5', 'Over 2.5', 'Under 2.5', 'Over 3.5', 'Under 3.5'], 'total_goals', showTotalGoalsCheckboxes, 'total-goals-filter')}
 
             {/* Reset */}
-            <div style={{ ...filterItemStyle, minWidth: '80px', marginTop: '16px' }}>
+            <div style={{ 
+              ...filterItemStyle, 
+              marginTop: '16px' 
+            }}>
               <button onClick={handleResetFilters} 
-                      style={resetButtonStyle}
+                      style={{
+                        ...currentButtonStyle,
+                        fontSize: isVerySmallScreen ? '10px' : '0.8em',
+                        height: isMobile ? (isVerySmallScreen ? '28px' : '32px') : '26px',
+                        padding: isVerySmallScreen ? '2px 8px' : '4px 14px'
+                      }}
                       className="reset-button">
-                        Reset
+                Reset
               </button>
             </div>
           </div>
-        </div>
+        </div> 
       </div>
 
       {/* Таблица */}
-      <div style={tableContainerStyle}>
-        <table style={tableStyle}>
+      <div style={containerStyle}
+           className={isMobile ? "table-responsive safari-table-fix scroll-container" : "safari-table-fix scroll-container"}>
+        <table style={currentTableStyle}>
           <thead>
-            <tr style={stickyHeaderRowStyle}>
-              <th style={{ minWidth: '120px' }}>Date</th>
-              <th>Home</th>
-              <th>Away</th>
-              <th style={{ ...verticalHeaderStyle, ...fixedWidthColumnStyle }}>1(o)</th>
-              <th style={{ ...verticalHeaderStyle, ...fixedWidthColumnStyle }}>1(e)</th>
-              <th style={{ ...verticalHeaderStyle, ...fixedWidthColumnStyle }}>X(o)</th>
-              <th style={{ ...verticalHeaderStyle, ...fixedWidthColumnStyle }}>X(e)</th>
-              <th style={{ ...verticalHeaderStyle, ...fixedWidthColumnStyle }}>2(o)</th>
-              <th style={{ ...verticalHeaderStyle, ...fixedWidthColumnStyle }}>2(e)</th>
-              <th style={{ ...verticalHeaderStyle, ...fixedWidthColumnStyle }}>BTS(o)</th>
-              <th style={{ ...verticalHeaderStyle, ...fixedWidthColumnStyle }}>BTS(e)</th>
-              <th style={{ ...verticalHeaderStyle, ...fixedWidthColumnStyle }}>B_no(o)</th>
-              <th style={{ ...verticalHeaderStyle, ...fixedWidthColumnStyle }}>B_no(e)</th>
-              <th style={{ ...verticalHeaderStyle, ...fixedWidthColumnStyle }}>Over(o)</th>
-              <th style={{ ...verticalHeaderStyle, ...fixedWidthColumnStyle }}>Over(e)</th>
-              <th style={{ ...verticalHeaderStyle, ...fixedWidthColumnStyle }}>Und(o)</th>
-              <th style={{ ...verticalHeaderStyle, ...fixedWidthColumnStyle }}>Und(e)</th>
-              <th style={{ ...fixedWidthColumnStyle }}>1H</th>
-              <th style={{ ...fixedWidthColumnStyle }}>FT</th>
-              <th style={leagueHeaderStyle}>League</th>
+            <tr style={stickyHeaderStyle}>
+              <th style={{ ...tableHeaderStyle, minWidth: isMobile ? '80px' : '120px' }}>Date</th>
+              <th style={tableHeaderStyle}>Home</th>
+              <th style={tableHeaderStyle}>Away</th>
+              <th style={{...tableHeaderStyle, minWidth: isMobile ? '25px' : '45px' }}>1_o</th>
+              <th style={{...tableHeaderStyle, minWidth: isMobile ? '25px' : '45px' }}>1_e</th>
+              <th style={{...tableHeaderStyle, minWidth: isMobile ? '25px' : '45px' }}>X_o</th>
+              <th style={{...tableHeaderStyle, minWidth: isMobile ? '25px' : '45px' }}>X_e</th>
+              <th style={{...tableHeaderStyle, minWidth: isMobile ? '25px' : '45px' }}>2_o</th>
+              <th style={{...tableHeaderStyle, minWidth: isMobile ? '25px' : '45px' }}>2_e</th>
+              <th style={{...tableHeaderStyle, minWidth: isMobile ? '25px' : '45px' }}>B_o</th>
+              <th style={{...tableHeaderStyle, minWidth: isMobile ? '25px' : '45px' }}>B_e</th>
+              <th style={{...tableHeaderStyle, minWidth: isMobile ? '25px' : '45px' }}>Bno_o</th>
+              <th style={{...tableHeaderStyle, minWidth: isMobile ? '25px' : '45px' }}>Bno_e</th>
+              <th style={{...tableHeaderStyle, minWidth: isMobile ? '25px' : '45px' }}>Ov_o</th>
+              <th style={{...tableHeaderStyle, minWidth: isMobile ? '25px' : '45px' }}>Ov_e</th>
+              <th style={{...tableHeaderStyle, minWidth: isMobile ? '25px' : '45px' }}>Un_o</th>
+              <th style={{...tableHeaderStyle, minWidth: isMobile ? '25px' : '45px' }}>Un_e</th>
+              <th style={{ ...tableHeaderStyle, minWidth: isMobile ? '35px' : '45px' }}>1H</th>
+              <th style={{ ...tableHeaderStyle, minWidth: isMobile ? '35px' : '45px' }}>FT</th>
+              {!isMobile && <th style={tableHeaderStyle}>League</th>}
             </tr>
           </thead>
           <tbody>
             {filteredMatches.map((match) => {
               const matchDate = new Date(match.date);
-              matchDate.setHours(matchDate.getHours() - 3); // ← убираем +3
+              matchDate.setHours(matchDate.getHours() - 3);
               const day = matchDate.getDate().toString().padStart(2, '0');
               const month = (matchDate.getMonth() + 1).toString().padStart(2, '0');
               const year = matchDate.getFullYear();
               const hours = matchDate.getHours().toString().padStart(2, '0');
               const minutes = matchDate.getMinutes().toString().padStart(2, '0');
-              const formattedDateTime = `${day}.${month}.${year}  ${hours}:${minutes}`;
+              const formattedDateTime = isVerySmallScreen 
+                ? `${day}.${month}.${year}`
+                : `${day}.${month}.${year}  ${hours}:${minutes}`;
 
               const isHighlighted =
                 (highlight === 'home' && match.outcome === 'home') ||
@@ -644,41 +1033,103 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
 
               return (
                 <tr key={match.id} style={isHighlighted ? { backgroundColor: '#63553f' } : undefined}>
-                    <td style={cellStyle}>{formattedDateTime}</td>
-                    <td style={teamCellStyle} title={match.home}>{match.home}</td>
-                    <td style={teamCellStyle} title={match.away}>{match.away}</td>
+                    <td style={currentCellStyle}>{formattedDateTime}</td>
+                    <td style={currentTeamCellStyle} title={match.home}>{match.home}</td>
+                    <td style={currentTeamCellStyle} title={match.away}>{match.away}</td>
                     
                     {/* Основные исходы */}
-                    <td style={cellStyle}>{formatOdds(match.one_o)}</td>
-                    <td style={cellStyle}>{formatOdds(match.one_e)}</td>
-                    <td style={cellStyle}>{formatOdds(match.x_o)}</td>
-                    <td style={cellStyle}>{formatOdds(match.x_e)}</td>
-                    <td style={cellStyle}>{formatOdds(match.two_o)}</td>
-                    <td style={cellStyle}>{formatOdds(match.two_e)}</td>
+                    <td style={currentCellStyle}>{formatOdds(match.one_o)}</td>
+                    <td style={currentCellStyle}>{formatOdds(match.one_e)}</td>
+                    <td style={currentCellStyle}>{formatOdds(match.x_o)}</td>
+                    <td style={currentCellStyle}>{formatOdds(match.x_e)}</td>
+                    <td style={currentCellStyle}>{formatOdds(match.two_o)}</td>
+                    <td style={currentCellStyle}>{formatOdds(match.two_e)}</td>
                     
                     {/* БТС */}
-                    <td style={cellStyle}>{formatOdds(match.bts_o)}</td>
-                    <td style={cellStyle}>{formatOdds(match.bts_e)}</td>
-                    <td style={cellStyle}>{formatOdds(match.bts_no_o)}</td>
-                    <td style={cellStyle}>{formatOdds(match.bts_no_e)}</td>
+                    <td style={currentCellStyle}>{formatOdds(match.bts_o)}</td>
+                    <td style={currentCellStyle}>{formatOdds(match.bts_e)}</td>
+                    <td style={currentCellStyle}>{formatOdds(match.bts_no_o)}</td>
+                    <td style={currentCellStyle}>{formatOdds(match.bts_no_e)}</td>
                     
                     {/* Тоталы */}
-                    <td style={cellStyle}>{formatOdds(match.over_o)}</td>
-                    <td style={cellStyle}>{formatOdds(match.over_e)}</td>
-                    <td style={cellStyle}>{formatOdds(match.under_o)}</td>
-                    <td style={cellStyle}>{formatOdds(match.under_e)}</td>
+                    <td style={currentCellStyle}>{formatOdds(match.over_o)}</td>
+                    <td style={currentCellStyle}>{formatOdds(match.over_e)}</td>
+                    <td style={currentCellStyle}>{formatOdds(match.under_o)}</td>
+                    <td style={currentCellStyle}>{formatOdds(match.under_e)}</td>
                     
                     {/* Нечисловые поля */}
-                    <td style={cellStyle}>{match.first_half || '-'}</td>
-                    <td style={cellStyle}>{match.match || '-'}</td>
-                    <td style={cellStyle_2} title={match.league}>{getFullLeagueName(match.league)}</td>
+                    <td style={currentCellStyle}>{match.first_half || '-'}</td>
+                    <td style={currentCellStyle}>{match.match || '-'}</td>
+                    {!isMobile && (
+                      <td style={cellStyle_2} title={match.league}>{getFullLeagueName(match.league)}</td>
+                    )}
                 </tr>
               );
             })}
           </tbody>
         </table>
+        
+        {/* Информационный блок */}
+        <div style={{
+          padding: '10px',
+          textAlign: 'center',
+          marginTop: '5px',
+          fontWeight: 'bold',
+        }}>
+          {isLoading ? (
+            <div style={{ 
+              color: 'white', 
+              padding: '10px', 
+              textAlign: 'center' 
+            }}>
+              Loading data...
+            </div>
+          ) : (
+            <div style={{ color: 'white' }}>
+              {allMatchesCache.length === 0 &&'No data to display'}
+            </div>
+          )}
+          
+          {/* Сообщение для мобильных */}
+          {isMobile && allMatchesCache.length > 0 && (
+            <div style={{
+              fontSize: '12px',
+              color: 'white',
+              marginTop: '5px',
+              padding: '5px',
+              backgroundColor: '#2c3e50',
+              borderRadius: '3px'
+            }}>
+              ⚠️ On mobile devices, only the first 20 matches are displayed. The database contains over 13,000 matches.
+               To work with the entire database, use the PC version.
+            </div>
+          )}
+          
+          {/* Сообщение для гостей на ПК */}
+          {!isMobile && (!user || !hasAccess) && allMatchesCache.length > 0 && (
+            <div style={{
+              fontSize: '13px',
+              color: 'white',
+              // marginTop: '5px',
+              padding: '5px',
+              backgroundColor: '#2c3e50',
+              borderRadius: '3px'
+            }}>
+              ⚠️ For guests, only the first 20 matches are shown.  
+              <a 
+                href="#" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  setActiveModal('access');
+                }}
+                style={{ color: '#3498db', textDecoration: 'underline', marginLeft: '5px' }}
+              >
+                Register
+              </a> to access the entire database (13,000+ matches)
+            </div>
+          )}
+        </div>
       </div>
-
       <AccessModal
         isOpen={activeModal === 'access'}
         onClose={() => setActiveModal('none')}
@@ -688,7 +1139,7 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
       <LoginModal
         isOpen={activeModal === 'login'}
         onClose={() => setActiveModal('none')}
-        onTrialExpired={() => setActiveModal('renew')} // новый пропс
+        onTrialExpired={() => setActiveModal('renew')}
       />
 
       <RenewModal
