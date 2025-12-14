@@ -12,6 +12,7 @@ export const cellStyle: CSSProperties = {
   textAlign: 'center',
   whiteSpace: 'nowrap',
   boxSizing: 'border-box',
+  color: '#ffffff',
 };
 
 export const cellStyle_2: CSSProperties = {
@@ -110,6 +111,7 @@ export const topBlockStyle: CSSProperties = {
   backgroundColor: '#282c34',
   boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
   WebkitBackdropFilter: 'blur(10px)',
+  marginBottom: '5px'
 };
 
 export const searchResultsStyle: CSSProperties = {
@@ -340,16 +342,17 @@ export const mobileTableContainerStyle: CSSProperties = {
 
 export const mobileTableStyle: CSSProperties = {
     ...tableStyle,
-    minWidth: '900px', // Было 1100px
-    fontSize: '11px', // Было 12px
-    tableLayout: 'fixed',
+    minWidth: '100%',
+    fontSize: '11px', 
+    tableLayout: 'auto', 
+    width: '100%',
 };
 
 export const mobileCellStyle: CSSProperties = {
     ...cellStyle,
-    padding: '4px 2px', // Было '8px 4px'
-    minWidth: '40px', // Было 50px
-    fontSize: '11px', // Было 12px
+    padding: '4px 2px', 
+    minWidth: '40px', 
+    fontSize: '11px', 
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
