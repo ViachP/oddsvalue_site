@@ -10,6 +10,7 @@ import RenewModal from './Auth/RenewModal';
 import { PaymentModal } from './PaymentModal';
 import { useAuth } from './../contexts/AuthContext';
 import { useMobileDetection } from './../hooks/useMobileDetection';
+import MobileDropdown from './MobileDropdown'; // или правильный путь
 
 // стили
 import {
@@ -18,16 +19,21 @@ import {
   filterItemStyle, labelStyle, checkboxLabelStyle, inputStyle, resetButtonStyle,
   stickyHeaderRowStyle, tableContainerStyle, checkboxDropdownStyle,
   checkboxItemStyle, customCheckboxStyle, customCheckboxCheckedStyle,
-  selectWithDropdownStyle, checkboxDropdownWideStyle,  searchResultItemStyle,
+  selectWithDropdownStyle, searchResultItemStyle,
   // МОБИЛЬНЫЕ СТИЛИ
   mobileTableStyle, mobileCellStyle, mobileTeamCellStyle, mobileButtonStyle,
   mobileCellStyleEnhanced, mobileTeamCellStyleEnhanced, mobileTableContainerStyle,
-  // mobileVerticalHeaderStyle,verticalHeaderStyle, leagueHeaderStyle, 
+  // mobileVerticalHeaderStyle,verticalHeaderStyle, leagueHeaderStyle, checkboxDropdownWideStyle, 
 } from './MatchList.styles';
 
 interface Props {
   activeModal: 'none' | 'access' | 'login' | 'renew' | 'payment';
   setActiveModal: (modal: 'none' | 'access' | 'login' | 'renew' | 'payment') => void;
+}
+
+interface DropdownItem {
+  value: string;
+  label: string;
 }
 
 export default function MatchList({ activeModal, setActiveModal }: Props) { 
@@ -102,7 +108,7 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
     (user.role === 'user' && user.expiresAt && new Date(user.expiresAt) > new Date())
   );
 
-  const isExpired = user && !hasAccess;
+  // const isExpired = user && !hasAccess;
 
   /* ----------  состояния  ---------- */
   const [searchTerm, setSearchTerm] = useState('');
@@ -123,6 +129,28 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
   // });
   const [highlight, setHighlight] = useState<null | 'home' | 'draw' | 'away'>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  type MobileDropdownType = 'leagues' | 'one_o' | 'x_o'| 'two_o' | 'bts_result' | 'total_goals';
+
+  const [mobileDropdown, setMobileDropdown] = useState<{
+    isOpen: boolean;
+    type: MobileDropdownType;
+    // title: string;
+    position: { top: number; left: number; width: number } | null;
+  }>({
+    isOpen: false,
+    type: 'leagues',
+    // title: '',
+    position: null
+  });
+
+  // Реф для получения актуального значения mobileDropdown
+  const mobileDropdownRef = useRef(mobileDropdown);
+
+  // Эффект для обновления рефа при изменении состояния
+  useEffect(() => {
+    mobileDropdownRef.current = mobileDropdown;
+  }, [mobileDropdown]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -183,22 +211,142 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
     setActiveModal('payment');
   };
 
-  // Функция проверки доступа
-  const checkAccess = () => {
-    if (!hasAccess) {
-      if (isExpired) {
-        setActiveModal('renew');
-      } else {
-        setActiveModal('access');
+  // Функция открытия дропдауна
+  const openMobileDropdown = (
+    type: MobileDropdownType,
+    buttonElement: HTMLElement
+  ) => {
+    const rect = buttonElement.getBoundingClientRect();
+    
+    setMobileDropdown({
+      isOpen: true,
+      type,
+      position: {
+        top: rect.bottom + window.scrollY + 5,
+        left: rect.left + window.scrollX,
+        width: rect.width
       }
-      return false;
-    }
-    return true;
+    });
   };
 
-  const handleFilterClick = (filterKey: string) => {
-    if (!checkAccess()) return;
+  // Функция закрытия дропдауна
+  const closeMobileDropdown = () => {
+    setMobileDropdown(prev => ({ ...prev, isOpen: false }));
+  };
 
+  // Функция получения элементов для дропдауна
+  const getMobileDropdownItems = (): DropdownItem[] => {
+    const { type } = mobileDropdown;
+    
+    switch (type) {
+      case 'leagues':
+        return getUniqueLeagues().map(l => ({ 
+          value: l.id, 
+          label: l.name 
+        }));
+      case 'one_o':
+        return getUniqueOneOs().map(value => ({ 
+          value, 
+          label: value 
+        }));
+      case 'two_o':
+        return getUniqueTwoOs().map(value => ({ 
+          value, 
+          label: value 
+        }));
+      case 'bts_result':
+        return ['Yes', 'No'].map(value => ({ 
+          value, 
+          label: value 
+        }));
+      case 'total_goals':
+        return ['Over 1.5', 'Under 1.5', 'Over 2.5', 'Under 2.5', 'Over 3.5', 'Under 3.5']
+          .map(value => ({ 
+            value, 
+            label: value 
+          }));
+      case 'x_o':
+        return getUniqueTwoOs().map(value => ({ 
+          value, 
+          label: value 
+        }));
+      default:
+        return [];
+    }
+  };
+
+  // Функция получения выбранных значений
+  const getMobileSelectedValues = (): string[] => {
+    const { type } = mobileDropdown;
+    
+    switch (type) {
+      case 'leagues': return selectedLeagues;
+      case 'one_o': return selectedOneOs;
+      case 'x_o': return selectedXOs; 
+      case 'two_o': return selectedTwoOs;
+      case 'bts_result': return selectedBtsResult;
+      case 'total_goals': return selectedTotalGoals;
+      default: return [];
+    }
+  };
+
+  // Обработчик выбора в дропдауне
+  const handleMobileSelect = (value: string) => {
+    const { type } = mobileDropdown;
+    
+    switch (type) {
+      case 'leagues':
+        handleCheckboxChange('leagues', value);
+        break;
+      case 'one_o':
+        handleCheckboxChange('one_o', value);
+        break;
+      case 'x_o':
+         handleCheckboxChange('x_o', value);
+        break;
+      case 'two_o':
+        handleCheckboxChange('two_o', value);
+        break;
+      case 'bts_result':
+        handleCheckboxChange('bts_result', value);
+        break;
+      case 'total_goals':
+        handleCheckboxChange('total_goals', value);
+        break;
+      
+    }
+  };
+
+  const handleFilterClick = (filterKey: string, event?: React.MouseEvent) => {
+    // Для мобильных устройств открываем кастомный dropdown
+    if (isMobile && event) {
+      const mobileMapping: Record<string, MobileDropdownType> = {
+        leagues: 'leagues',
+        one_o: 'one_o',
+        x_o: 'x_o', 
+        two_o: 'two_o',
+        bts_result: 'bts_result',
+        total_goals: 'total_goals',
+      };
+      
+      const mobileType = mobileMapping[filterKey];
+      if (mobileType) {
+        event.stopPropagation();
+        event.preventDefault(); // ← ВАЖНО: добавляем preventDefault
+        
+        // ТОЧНОЕ СРАВНЕНИЕ: если уже открыт тот же тип - закрываем
+        if (mobileDropdown.isOpen && mobileDropdown.type === mobileType) {
+          closeMobileDropdown();
+          return; // ← ВАЖНО: выходим сразу
+        }
+        
+        // Иначе открываем новый
+        openMobileDropdown(mobileType, event.currentTarget as HTMLElement);
+        return;
+      }
+    }
+
+    // Оригинальный код для десктопа
     const mapping: Record<string, React.Dispatch<React.SetStateAction<boolean>>> = {
       leagues: setShowLeaguesCheckboxes,
       one_o: setShowOneOCheckboxes,
@@ -220,7 +368,11 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
       bts_result: setShowBtsResultCheckboxes,
       total_goals: setShowTotalGoalsCheckboxes,
     };
-    mapping[filterKey]?.(prev => !prev);
+    
+    const setter = mapping[filterKey];
+    if (setter) {
+      setter(prev => !prev); // Просто инвертируем состояние
+    }
   };
 
   /* ----------  хук-фильтры  ---------- */
@@ -258,19 +410,28 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
 
   /* ----------  функции  ---------- */
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!checkAccess()) return;
-    
+    // if (!checkAccess()) return;
+  
     const term = e.target.value;
     setSearchTerm(term);
+    
     if (term.length > 1) {
-      setSearchResults(getUniqueTeams().filter((t) => t.toLowerCase().includes(term.toLowerCase())));
+      const results = getUniqueTeams().filter((t) => 
+        t.toLowerCase().includes(term.toLowerCase())
+      );
+      setSearchResults(results);
+      
+      // На мобильных открываем дропдаун если есть результаты
+      // if (isMobile && results.length > 0) {
+      //   openMobileDropdown('teams', e.target);
+      // }
     } else {
       setSearchResults([]);
     }
   };
 
   const handleTeamSelect = (teamName: string) => {
-    if (!checkAccess()) return;
+    // if (!checkAccess()) return;
     
     setSelectedTeam([teamName]);
     setSearchTerm(teamName);
@@ -278,7 +439,7 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
   };
 
   const handleCheckboxChange = (filterType: string, value: string) => {
-    if (!checkAccess()) return;
+    // if (!checkAccess()) return;
 
     const setters: { [key: string]: React.Dispatch<React.SetStateAction<string[]>> } = {
       leagues: setSelectedLeagues,
@@ -403,22 +564,42 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
       return selectedValues.join(', ');
     };
 
+    // const getDropdownStyle = () => {
+    //   if (filterType === 'leagues') return checkboxDropdownStyle; // checkboxDropdownWideStyle
+    //   if (filterType === 'total_goals') return { ...checkboxDropdownStyle, minWidth: '100px' };
+    //   return checkboxDropdownStyle;
+    // };
+
+    // const getDropdownStyle = () => {
+    //   return checkboxDropdownStyle;
+    // };
+
     const getDropdownStyle = () => {
-      if (filterType === 'leagues') return checkboxDropdownWideStyle;
-      if (filterType === 'total_goals') return { ...checkboxDropdownStyle, minWidth: '100px' };
+      // Для total_goals делаем выпадающий список шире
+      if (filterType === 'total_goals') {
+        return { 
+          ...checkboxDropdownStyle,
+          minWidth: '120px', // или нужная ширина
+          width: 'auto',
+          left: 0,
+          right: 0
+        };
+      }
       return checkboxDropdownStyle;
     };
 
     return (
-      <div style={{ ...filterItemStyle, ...(filterType === 'leagues' && { minWidth:  isMobile ? '80px' : '250px',
+      <div style={{ ...filterItemStyle, 
+        ...(filterType === 'leagues' && { minWidth:  isMobile ? '80px' : '250px',
         flex: isMobile ? 1 : undefined
        }) }} data-attribute={dataAttribute}>
         <label style={labelStyle}>{label}</label>
         <div style={{ position: 'relative' }}>
           <button
-            onClick={() => handleFilterClick(filterType)}
+            onClick={(e) => handleFilterClick(filterType, e)}
             style={selectWithDropdownStyle}
             title={getTitle()}
+            data-filter-button="true" // ← ВАЖНО!
           >
             {getDisplayText()}
           </button>
@@ -890,7 +1071,7 @@ useEffect(() => {
                         type="checkbox" 
                         checked={showHome} 
                         onChange={() => {
-                          if (!checkAccess()) return;
+                          // if (!checkAccess()) return;
                           setShowHome((v) => !v);
                         }} 
                         style={{ marginRight: '5px' }}
@@ -902,7 +1083,7 @@ useEffect(() => {
                         type="checkbox" 
                         checked={showAway} 
                         onChange={() => {
-                          if (!checkAccess()) return;
+                          // if (!checkAccess()) return;
                           setShowAway((v) => !v);
                         }} 
                         style={{ marginRight: '5px' }}
@@ -913,38 +1094,16 @@ useEffect(() => {
                 </div>
               </div>
               
-              {/* РЯД 2: Team, 1_o, 2_o */}
-              <div style={{ display: 'flex', width: '100%', alignItems: 'flex-start' }}>
-                {/* Team */}
-                <div style={{ flex: 1.5, minWidth: '80px', marginRight: '12px' }}>
-                  <label htmlFor="teamSearchFilter" style={labelStyle}>Team</label>
-                  <input
-                    id="teamSearchFilter"
-                    type="text"
-                    value={searchTerm}
-                    onChange={handleSearchChange}
-                    placeholder="Search..."
-                    style={{...inputStyle, height: '26px', fontSize: '0.85em'}}
-                    autoComplete="off"
-                  />
-                   {searchResults.length > 0 && searchTerm.length > 1 && (
-                    <ul style={{...searchResultsStyle, fontSize: '12px'}}>
-                      {searchResults.map((team) => (
-                        <li 
-                          key={team} 
-                          onClick={() => handleTeamSelect(team)} 
-                          style={{...searchResultItemStyle, padding: '6px 8px'}}
-                        >
-                          {team}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-                
+              {/* РЯД 2: 1_o, x_o, 2_o */}
+              <div style={{ display: 'flex', width: '100%', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px'}}>
                 {/* 1_o */}
-                <div style={{ flex: 1, minWidth: '40px', marginRight: '5px' }}>
+                <div style={{ flex: 1, minWidth: '40px'}}>
                   {renderCheckboxFilter('1_o', selectedOneOs, getUniqueOneOs(), 'one_o', showOneOCheckboxes, 'one-o-filter')}
+                </div>
+
+                {/* X_o - НОВЫЙ ФИЛЬТР */}
+                <div style={{ flex: 1, minWidth: '40px' }}>
+                  {renderCheckboxFilter('X_o', selectedXOs, getUniqueXOs(), 'x_o', showXOCheckboxes, 'x-o-filter')}
                 </div>
                 
                 {/* 2_o */}
@@ -1211,8 +1370,7 @@ useEffect(() => {
               backgroundColor: '#2c3e50',
               borderRadius: '3px'
             }}>
-              ⚠️ On mobile devices, only the first 20 matches are displayed. The database contains over 13,000 matches.
-               To work with the entire database, use the PC version.
+              ⚠️ For full access to our database of 13,000+ matches and advanced filters, please visit the site from a PC.
             </div>
           )}
           
@@ -1269,6 +1427,17 @@ useEffect(() => {
       <PaymentModal
         isOpen={activeModal === 'payment'}
         onClose={() => setActiveModal('none')}
+      />
+      {/* Мобильное dropdown окно */}
+      <MobileDropdown
+        isOpen={mobileDropdown.isOpen}
+        onClose={closeMobileDropdown}
+        // title={mobileDropdown.title}
+        type={mobileDropdown.type}
+        items={getMobileDropdownItems()}
+        selectedValues={getMobileSelectedValues()}
+        onSelect={handleMobileSelect}
+        position={mobileDropdown.position || undefined}
       />
     </div>
   );

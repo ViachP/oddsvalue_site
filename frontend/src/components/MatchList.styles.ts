@@ -111,7 +111,7 @@ export const topBlockStyle: CSSProperties = {
   backgroundColor: '#282c34',
   boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
   WebkitBackdropFilter: 'blur(10px)',
-  marginBottom: '5px'
+  marginBottom: '2px'
 };
 
 export const searchResultsStyle: CSSProperties = {
@@ -228,7 +228,6 @@ export const tableContainerStyle: CSSProperties = {
     marginTop: '0',
     padding: '0',
     backgroundColor: '#282c34',
-    // maxHeight: 'none' // Убираем ограничение высоты
 };
 
 export const applyButtonStyle: CSSProperties = {
@@ -263,7 +262,7 @@ export const checkboxDropdownStyle: CSSProperties = {
   maxHeight: '150px',
   overflowY: 'auto',
   zIndex: 1000,
-  boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
+  boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
 };
 
 export const checkboxItemStyle: CSSProperties = {
@@ -460,12 +459,4 @@ export const mobileFilterItemCompactStyle: CSSProperties = {
   minWidth: '60px',
   fontSize: '10px',
 };
-
-// Улучшенный вертикальный заголовок для мобильных
-// export const mobileVerticalHeaderStyle: CSSProperties = {
-//   ...verticalHeaderStyle,
-//   minWidth: '20px',
-//   padding: '2px 4px',
-//   fontSize: '9px',
-// };
 

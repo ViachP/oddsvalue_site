@@ -1,27 +1,8 @@
 // components/MobileHeader.tsx
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import LoginModal from './Auth/LoginModal';
-import AccountModal from './Auth/AccountModal';
 
-interface MobileHeaderProps {
-  onTrialExpired: () => void;
-}
-
-const MobileHeader: React.FC<MobileHeaderProps> = ({ onTrialExpired }) => {
-  const { user, logout } = useAuth();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [isAccountOpen, setIsAccountOpen] = useState(false);
+const MobileHeader: React.FC = () => {
   const [isInfoOpen, setIsInfoOpen] = useState(false);
-
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
-  const closeMenu = () => {
-    setIsMenuOpen(false);
-  };
 
   return (
     <>
@@ -60,180 +41,33 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onTrialExpired }) => {
           <span>oddsvalue.pro</span>
         </div>
         
-        {/* Правая часть с кнопками */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {/* Кнопка логина/профиля (иконка) */}
-          <button
-            onClick={() => {
-              if (user) {
-                setIsAccountOpen(true);
-              } else {
-                setIsLoginOpen(true);
-              }
-            }}
-            style={{
-              background: 'none',
-              border: `1px solid ${user ? '#4CAF50' : '#FF9800'}`,
-              color: user ? '#4CAF50' : '#FF9800',
-              fontSize: '18px',
-              padding: '8px',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              width: '44px',
-              height: '44px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.2s'
-            }}
-            aria-label={user ? "Account" : "Login"}
-            title={user ? user.email : "Login"}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-            }}
-          >
-            {user ? '👤' : '🔓'}
-          </button>
-          
-          {/* Гамбургер меню */}
-          <button
-            onClick={toggleMenu}
-            style={{
-              background: 'none',
-              border: '1px solid #666',
-              color: 'white',
-              fontSize: '20px',
-              padding: '8px',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              width: '44px',
-              height: '44px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.2s'
-            }}
-            aria-label="Menu"
-            aria-expanded={isMenuOpen}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-            }}
-          >
-            ☰
-          </button>
-        </div>
+        {/* Кнопка Info */}
+        <button
+          onClick={() => setIsInfoOpen(true)}
+          style={{
+            background: 'none',
+            border: '1px solid #666',
+            color: '#FF9800',
+            fontSize: '18px',
+            padding: '8px',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+            width: '44px',
+            height: '44px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.2s'
+          }}
+          aria-label="Columns Guide"
+          title="Columns Guide"
+        >
+          ℹ️
+        </button>
       </header>
 
-      {/* Выпадающее меню */}
-      {isMenuOpen && (
-        <>
-          {/* Overlay для закрытия */}
-          <div 
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: 'rgba(0,0,0,0.5)',
-              zIndex: 1999
-            }}
-            onClick={closeMenu}
-            role="presentation"
-          />
-          
-          {/* Меню - ТОЛЬКО нужные пункты */}
-          <div style={{
-            position: 'fixed',
-            top: '68px',
-            right: '15px',
-            backgroundColor: '#282c34',
-            borderRadius: '8px',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-            minWidth: '180px',
-            zIndex: 2000,
-            border: '1px solid #444',
-            overflow: 'hidden',
-            animation: 'slideDown 0.2s ease-out'
-          }}>
-            {/* Info в меню */}
-            <div 
-              onClick={() => {
-                setIsInfoOpen(true);
-                closeMenu();
-              }}
-              style={{ 
-                padding: '12px 16px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                cursor: 'pointer',
-                borderBottom: '1px solid #444',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              <span style={{ fontSize: '18px' }}>ℹ️</span>
-              <span>Info</span>
-            </div>
-            
-            {/* Контакты */}
-            <div 
-              onClick={() => {
-                closeMenu();
-                alert('По вопросам: contact@oddsvalue.pro');
-              }}
-              style={{ 
-                padding: '12px 16px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                cursor: 'pointer',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              <span style={{ fontSize: '18px' }}>📧</span>
-              <span>Contact</span>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Модальные окна */}
-      <LoginModal
-        isOpen={isLoginOpen}
-        onClose={() => setIsLoginOpen(false)}
-        onTrialExpired={onTrialExpired}
-      />
-      
-      <AccountModal
-        isOpen={isAccountOpen}
-        onClose={() => setIsAccountOpen(false)}
-        onLogout={() => {
-          logout();
-          setIsAccountOpen(false);
-        }}
-      />
-
-      {/* Info модалка - обновленная с акцентом на мобильные ограничения */}
+      {/* Модалка с гайдом по колонкам */}
       {isInfoOpen && (
         <div 
           style={{
@@ -242,81 +76,296 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onTrialExpired }) => {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.7)',
+            backgroundColor: 'rgba(0,0,0,0.85)',
             zIndex: 3000,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '20px'
+            padding: '15px'
           }}
           onClick={() => setIsInfoOpen(false)}
         >
           <div 
             style={{
-              backgroundColor: '#282c34',
-              padding: '25px',
-              borderRadius: '10px',
-              maxWidth: '400px',
+              backgroundColor: '#1a1d24',
+              padding: '0',
+              borderRadius: '12px',
+              maxWidth: '500px',
               width: '100%',
-              border: '1px solid #444',
-              color: 'white'
+              border: '1px solid #3a3f4b',
+              color: '#e0e0e0',
+              maxHeight: '85vh',
+              overflowY: 'auto',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
             }}
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Шапка модалки с крестиком */}
             <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '15px'
+              position: 'relative',
+              padding: '25px 20px 15px 20px',
+              borderBottom: '1px solid #3a3f4b',
+              backgroundColor: '#21252e'
             }}>
-              <h3 style={{ margin: 0 }}>📱 Mobile Version</h3>
+              {/* Крестик закрытия */}
               <button
                 onClick={() => setIsInfoOpen(false)}
                 style={{
+                  position: 'absolute',
+                  top: '15px',
+                  right: '15px',
                   background: 'none',
                   border: 'none',
-                  color: 'white',
-                  fontSize: '24px',
-                  cursor: 'pointer'
+                  color: '#aaa',
+                  fontSize: '28px',
+                  cursor: 'pointer',
+                  padding: '0',
+                  width: '36px',
+                  height: '36px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '6px',
+                  transition: 'all 0.2s',
+                  fontWeight: '300'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#fff';
+                  e.currentTarget.style.backgroundColor = '#3a3f4b';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = '#aaa';
+                  e.currentTarget.style.backgroundColor = 'transparent';
                 }}
               >
                 ×
               </button>
+              
+              {/* Центрированный заголовок с градиентом */}
+              <h2 style={{ 
+                margin: 0, 
+                background: 'linear-gradient(90deg, #4CAF50, #2196F3)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                textAlign: 'center',
+                fontSize: '22px',
+                fontWeight: '700',
+                paddingTop: '5px',
+                letterSpacing: '0.5px'
+              }}>
+                Columns Guide
+              </h2>
             </div>
             
-            <div style={{ 
-              backgroundColor: '#2c3e50', 
-              padding: '15px', 
-              borderRadius: '6px',
-              marginBottom: '15px'
-            }}>
-              <p style={{ margin: 0, fontWeight: 'bold', color: '#4CAF50' }}>
-                ⚠️ На мобильном отображаются первые 20 матчей
-              </p>
+            {/* Контент модалки */}
+            <div style={{ padding: '20px' }}>
+              {/* Блок с типами odds */}
+              <div style={{ 
+                backgroundColor: '#21252e', 
+                padding: '18px',
+                borderRadius: '8px',
+                marginBottom: '25px',
+                border: '1px solid #3a3f4b'
+              }}>
+                <p style={{ 
+                  margin: '0 0 15px 0', 
+                  fontWeight: '600', 
+                  background: 'linear-gradient(90deg, #4CAF50, #2196F3)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  fontSize: '16px'
+                }}>
+                  For each market, two types of odds are provided:
+                </p>
+                <div style={{ marginLeft: '0' }}>
+                  <div style={{ 
+                    marginBottom: '12px',
+                    display: 'flex', 
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '6px'
+                  }}>
+                    <strong style={{ 
+                      color: '#fff', 
+                      minWidth: '120px',
+                      background: 'linear-gradient(90deg, #66BB6A, #4CAF50)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text'
+                    }}>Opening Odds</strong>
+                    <span style={{ color: '#aaa' }}>- ends with</span>
+                    <code style={{ 
+                      backgroundColor: '#3a3f4b', 
+                      color: '#4CAF50', 
+                      padding: '4px 8px', 
+                      borderRadius: '4px',
+                      fontWeight: 'bold',
+                      fontSize: '14px',
+                      fontFamily: 'monospace',
+                      border: '1px solid #4CAF50'
+                    }}>o</code>
+                    <span style={{ color: '#aaa' }}>(e.g., 
+                      <strong style={{
+                        background: 'linear-gradient(90deg, #66BB6A, #4CAF50)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text',
+                        marginLeft: '5px'
+                      }}>1_o</strong>)
+                    </span>
+                  </div>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '6px'
+                  }}>
+                    <strong style={{ 
+                      color: '#fff', 
+                      minWidth: '120px',
+                      background: 'linear-gradient(90deg, #2196F3, #1976D2)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text'
+                    }}>Closing Odds</strong>
+                    <span style={{ color: '#aaa' }}>- ends with</span>
+                    <code style={{ 
+                      backgroundColor: '#3a3f4b', 
+                      color: '#2196F3', 
+                      padding: '4px 8px', 
+                      borderRadius: '4px',
+                      fontWeight: 'bold',
+                      fontSize: '14px',
+                      fontFamily: 'monospace',
+                      border: '1px solid #2196F3'
+                    }}>e</code>
+                    <span style={{ color: '#aaa' }}>(e.g., 
+                      <strong style={{
+                        background: 'linear-gradient(90deg, #2196F3, #1976D2)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text',
+                        marginLeft: '5px'
+                      }}>1_e</strong>)
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Список маркета */}
+              <div style={{ marginBottom: '10px' }}>
+                <h3 style={{ 
+                  background: 'linear-gradient(90deg, #4CAF50, #2196F3)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  marginBottom: '18px',
+                  fontSize: '18px',
+                  fontWeight: '700'
+                }}>
+                  Markets Description:
+                </h3>
+                
+                {/* Стилизованные строки маркетов */}
+                <div style={{ 
+                  backgroundColor: '#21252e',
+                  border: '1px solid #3a3f4b',
+                  borderRadius: '8px',
+                  overflow: 'hidden'
+                }}>
+                  {[
+                    { code: '1_o / 1_e', desc: 'Home Team to Win' },
+                    { code: 'X_o / X_e', desc: 'Draw' },
+                    { code: '2_o / 2_e', desc: 'Away Team to Win' },
+                    { code: 'B_o / B_e', desc: 'Both Teams to Score' },
+                    { code: 'Bno_o / Bno_e', desc: 'Both Teams Not to Score' },
+                    { code: 'Ov_o / Ov_e', desc: 'Over 2.5 Goals' },
+                    { code: 'Un_o / Un_e', desc: 'Under 2.5 Goals' },
+                    { code: '1H', desc: 'First Half Result' },
+                    { code: 'FT', desc: 'Full Time Result' }
+                  ].map((market, index) => (
+                    <div 
+                      key={index}
+                      style={{
+                        padding: '14px 16px',
+                        borderBottom: index < 8 ? '1px solid #3a3f4b' : 'none',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        backgroundColor: index % 2 === 0 ? '#21252e' : '#1d2028',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#2a2e3a';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = index % 2 === 0 ? '#21252e' : '#1d2028';
+                      }}
+                    >
+                      <span>
+                        <strong style={{ 
+                          background: 'linear-gradient(90deg, #4CAF50, #2196F3)',
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                          backgroundClip: 'text',
+                          fontFamily: 'monospace',
+                          fontSize: '15px',
+                          fontWeight: '700'
+                        }}>
+                          {market.code}
+                        </strong>
+                      </span>
+                      <span style={{ 
+                        color: '#e0e0e0',
+                        fontSize: '15px',
+                        textAlign: 'right',
+                        maxWidth: '60%'
+                      }}>
+                        {market.desc}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Предупреждение */}
+                <div style={{ 
+                  backgroundColor: '#2d1f1a',
+                  padding: '15px',
+                  borderRadius: '8px',
+                  marginTop: '25px',
+                  fontSize: '14px',
+                  color: '#ffab91',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '12px',
+                  border: '1px solid #5d4037'
+                }}>
+                  <span style={{ 
+                    color: '#ff8a65', 
+                    fontSize: '18px',
+                    flexShrink: 0
+                  }}>
+                    ⚠️
+                  </span>
+                  <div style={{ lineHeight: '1.5' }}>
+                    <strong style={{ color: '#ffccbc' }}>Note:</strong> The FT column shows the match score in regular time. Goals scored during extra time and penalty shootouts are not displayed here.
+                  </div>
+                </div>
+              </div>
             </div>
             
-            <p style={{ lineHeight: '1.6', marginBottom: '15px' }}>
-              <strong>Полная версия на ПК включает:</strong>
-            </p>
-            <ul style={{ 
-              paddingLeft: '20px', 
-              marginBottom: '20px',
-              lineHeight: '1.8'
-            }}>
-              <li>Базу из более <strong>13,000+ матчей</strong></li>
-              <li>Расширенную фильтрацию по коэффициентам</li>
-              <li>Подробную статистику по основым рынкам</li>
-              <li>Показатели ROI по каждому рынку</li>
-            </ul>
-            
-            <div style={{ 
-              backgroundColor: '#34495e', 
-              padding: '12px',
-              borderRadius: '6px',
+            {/* Футер модалки */}
+            <div style={{
+              padding: '15px 20px',
+              borderTop: '1px solid #3a3f4b',
+              backgroundColor: '#21252e',
               textAlign: 'center',
-              fontSize: '14px'
+              fontSize: '12px',
+              color: '#888'
             }}>
-              Откройте этот сайт на компьютере для доступа ко всем функциям
+              <div>oddsvalue.pro</div>
             </div>
           </div>
         </div>
@@ -324,20 +373,6 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onTrialExpired }) => {
 
       {/* Отступ для контента */}
       <div style={{ height: '70px' }} />
-
-      {/* Стили анимации */}
-      <style>{`
-        @keyframes slideDown {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </>
   );
 };

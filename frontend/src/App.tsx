@@ -18,7 +18,7 @@ function AppContent() {
     <div className="App">
       {/* Мобильный хедер */}
       {isMobile && (
-        <MobileHeader onTrialExpired={() => setActiveModal('renew')} />
+        <MobileHeader />
       )}
 
       <main>
