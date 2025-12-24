@@ -375,7 +375,7 @@
         
         <p>И что мы видим. Явный фаворит выиграл <span class="number">17</span> матчей из <span class="number">20</span>, но мы бы понесли убытки, если бы на него ставили из-за того, что слишком маленький коэффициент дают на явного фаворита. И достаточно, чтобы он всего <span class="number red">3 раза</span> не выиграл и это обнуляет все его <span class="number">17 побед</span>.</p>
         
-        <div class="stats-box">
+        <!-- <div class="stats-box">
             <div class="stat-row">
                 <div class="stat-label">Всего матчей</div>
                 <div class="stat-value">20</div>
@@ -396,65 +396,94 @@
                 <div class="stat-label">Итоговый ROI</div>
                 <div class="stat-value red">-5.2%</div>
             </div>
-        </div>
+        </div> -->
         
         <p><strong>Вывод:</strong> Даже при 85% побед ставки на таких фаворитов убыточны из-за низких коэффициентов. Это классический пример, где интуиция подводит, а математика показывает реальную картину.</p>
         
-        <!-- Раздел 3 -->
-        <h2>Пример из практики: Ювентус</h2>
+                <!-- Раздел 3 -->
+        <h2>Ставки на тотал</h2>
         
-        <p>Рассмотрим статистику матчей Ювентуса.</p>
+        <p>Все мы любим, когда в матче забивается много голов, и часто ставим на  ТБ 2.5. Для примера возьмем самую забивную лигу Европы — Бундеслигу, где в среднем за матч забивается <span class="number">3.19</span> гола. Возьмем кэф открытия на ТБ 2.5 в диапазоне <span class="number">1.60 - 1.69</span>. Всего было <span class="number">97</span> матчей, и мы получили бы прибыль в размере <span class="number green">1.98</span> нашего размера ставки.</p>
         
-        <!-- Скриншот -->
+        <!-- Скриншот 1 -->
         <div class="screenshot-container">
-            <img src="/static/blog/juve.png" 
-                 alt="Статистика ROI на ничью в матчах Ювентуса">
-            <p class="caption">ROI на ничью в матчах Ювентуса: <span class="number green">28.15%</span> за 66 матчей</p>
+            <img src="/static/blog/over_open.png" 
+                 alt="Статистика ROI на ТБ 2.5 по кэфам открытия в Бундеслиге">
+            <p class="caption">ROI на ТБ 2.5 по кэфам открытия 1.60 - 1.69 составляет <span class="number green">1.98</span></p>
         </div>
         
-        <p>В базе <span class="number">66 матчей</span> этой команды. ROI на ничью составляет <span class="number green">28.15%</span>.</p>
-        
-        <div class="stats-box">
+        <!-- <div class="stats-box">
+            <div class="stat-row">
+                <div class="stat-label">Лига</div>
+                <div class="stat-value">Бундеслига (Германия)</div>
+            </div>
+            <div class="stat-row">
+                <div class="stat-label">Диапазон коэффициентов</div>
+                <div class="stat-value">1.60 - 1.69</div>
+            </div>
             <div class="stat-row">
                 <div class="stat-label">Количество матчей</div>
-                <div class="stat-value">66</div>
+                <div class="stat-value">97</div>
             </div>
             <div class="stat-row">
-                <div class="stat-label">Ставка на каждый матч</div>
-                <div class="stat-value">100$</div>
+                <div class="stat-label">Средний коэффициент</div>
+                <div class="stat-value">1.65</div>
             </div>
             <div class="stat-row">
-                <div class="stat-label">Общие вложения</div>
-                <div class="stat-value">6,600$</div>
+                <div class="stat-label">Итоговый ROI</div>
+                <div class="stat-value number green">1.98%</div>
             </div>
-            <div class="stat-row">
-                <div class="stat-label">Прибыль (28.15% ROI)</div>
-                <div class="stat-value number green">1,857.90$</div>
-            </div>
-            <div class="stat-row">
-                <div class="stat-label">Доходность</div>
-                <div class="stat-value number green">28.15%</div>
-            </div>
+        </div> -->
+        
+        <p>Но давайте посмотрим, что было бы, если бы мы ставили на тот же диапазон, но по кэфам закрытия. Таких матчей было <span class="number">58</span>, и мы получили бы прибыль в размере <span class="number green">11.12</span> нашего размера ставки, то есть в 5.5 раз больше.</p>
+        
+        <!-- Скриншот 2 -->
+        <div class="screenshot-container">
+            <img src="/static/blog/over_close.png" 
+                 alt="Статистика ROI на ТБ 2.5 по кэфам закрытия в Бундеслиге">
+            <p class="caption">ROI на ТБ 2.5 по кэфам закрытия 1.60 - 1.69 составляет <span class="number green">11.12</span></p>
         </div>
         
-        <p>Такая прибыль возможна только на дистанции. Валуйные ставки работают в долгосрочной перспективе.</p>
+        <!-- <div class="stats-box">
+            <div class="stat-row">
+                <div class="stat-label">Лига</div>
+                <div class="stat-value">Бундеслига (Германия)</div>
+            </div>
+            <div class="stat-row">
+                <div class="stat-label">Диапазон коэффициентов</div>
+                <div class="stat-value">1.60 - 1.69 (закрытие)</div>
+            </div>
+            <div class="stat-row">
+                <div class="stat-label">Количество матчей</div>
+                <div class="stat-value">58</div>
+            </div>
+            <div class="stat-row">
+                <div class="stat-label">Средний коэффициент</div>
+                <div class="stat-value">1.64</div>
+            </div>
+            <div class="stat-row">
+                <div class="stat-label">Итоговый ROI</div>
+                <div class="stat-value number green">11.12%</div>
+            </div>
+        </div> -->
+        
         
         <!-- Раздел 4 -->
         <h2>Где искать валуйные тренды?</h2>
+
+        <p>Сервис Oddsvalue.pro предоставляет вам базу <span class="number">14000+</span> матчей. Это <span class="number">32</span> лиги и <span class="number">3</span> турнира еврокубков. База пополняется каждую неделю.</p>
         
-        <p>Анализировать можно любые рынки:</p>
+        <p>Вы сможете найти валуйные матчи по таким рынкам как :</p>
         
         <ul>
             <li>Победа домашней команды (П1)</li>
             <li>Ничья</li>
             <li>Победа гостевой команды (П2)</li>
             <li>Обе забьют (BTS Yes)</li>
+            <li>Хотя бы одна команда не забьет (BTS No)</li>
             <li>Тоталы больше/меньше 2.5 голов</li>
-            <li>Индивидуальные тоталы</li>
-            <li>Форы</li>
+            <li>Тренды команд по 1 тайму</li>
         </ul>
-        
-        <p>Для статистической значимости нужна дистанция — минимум 30-50 матчей.</p>
         
         <!-- Раздел 5 -->
         <h2>Управление банкроллом</h2>

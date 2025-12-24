@@ -111,7 +111,7 @@ export const topBlockStyle: CSSProperties = {
   backgroundColor: '#282c34',
   boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
   WebkitBackdropFilter: 'blur(10px)',
-  marginBottom: '2px'
+  // marginBottom: '2px'
 };
 
 export const searchResultsStyle: CSSProperties = {
@@ -151,7 +151,7 @@ export const filtersContainerStyle: CSSProperties = {
   // border: '1px solid #ccc',
   borderRadius: '4px',
   backgroundColor: '#2a2a2a',
-  marginBottom: '2px',
+  marginBottom: '3px',
 };
 
 export const filtersRowStyle: CSSProperties = {

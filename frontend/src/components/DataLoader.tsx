@@ -1,27 +1,37 @@
-// src/components/DataLoader.tsx
-import { useState, useEffect } from 'react';
-import TableScreenshot from './TableScreenshot';
+// DataLoader.tsx
+import React, { useState, useEffect } from 'react';
 import MatchList from './MatchList';
+import { useAuth } from '../contexts/AuthContext';
 
-interface Props {
-  activeModal: 'none' | 'access' | 'login' | 'renew' | 'payment';
-  setActiveModal: (modal: 'none' | 'access' | 'login' | 'renew' | 'payment') => void;
-}
-
-export default function DataLoader({ activeModal, setActiveModal }: Props) {
-  const [showReal, setShowReal] = useState(false);
+const DataLoader: React.FC = () => {
+  const [activeModal, setActiveModal] = useState<'none' | 'access' | 'login' | 'renew' | 'payment'>('none');
+  const { user } = useAuth();
+  
+  // Удаляем неиспользуемую переменную isMobile
+  // const isMobile = useMobileDetection();
 
   useEffect(() => {
-    const t = setTimeout(() => setShowReal(true), 6000); // 6 секунд
-    return () => clearTimeout(t);
-  }, []);
+    if (user) {
+      if (user.role === 'admin') {
+        console.log('Admin user detected');
+      } else if (user.role === 'user' && user.expiresAt) {
+        const expiryDate = new Date(user.expiresAt);
+        const now = new Date();
+        if (expiryDate <= now) {
+          setActiveModal('renew');
+        }
+      }
+    }
+  }, [user]);
 
   return (
-    <>
-      {!showReal && <TableScreenshot onLoaded={() => {}} />}
-      <div style={{ display: showReal ? 'block' : 'none' }}>
-        <MatchList activeModal={activeModal} setActiveModal={setActiveModal} />
-      </div>
-    </>
+    <div>
+      <MatchList 
+        activeModal={activeModal}
+        setActiveModal={setActiveModal}
+      />
+    </div>
   );
-}
+};
+
+export default DataLoader;

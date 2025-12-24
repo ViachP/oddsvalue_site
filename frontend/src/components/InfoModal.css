@@ -1,32 +1,177 @@
-/* src/components/InfoModal.css – только уникальные стили */
+/* src/components/InfoModal.css */
 
-/* Уникальные стили для контента InfoModal */
+/* Основные стили */
+.info-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.info-modal-box {
+  background: #1a1a1a;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 480px;
+  width: 90%;
+  position: relative;
+  border: 1px solid #333;
+  overflow: visible !important; /* Убираем скролл */
+}
+
+.info-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #aaa;
+  line-height: 1;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.info-modal-close:hover {
+  color: #fff;
+}
+
+/* Заголовки желтого цвета */
+.info-modal-title,
+.info-sect h3 {
+  color: #ffd54f !important;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.info-modal-title {
+  font-size: 20px;
+  text-align: center;
+  margin-bottom: 15px;
+  /* УБИРАЕМ ЛИНИЮ: border-bottom: 1px solid #333; */
+}
+
+/* Секции */
 .info-sect {
   margin-bottom: 20px;
 }
 
-.info-sect h3 {
-  margin: 0 0 8px 0;
-  font-size: 15px;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: #ffd54f;
+.info-sect.intro {
+  text-align: center;
 }
 
-/* единственный селектор для строк-рынков */
-.info-list > div {
-  margin-bottom: 6px;
+.white-text {
+  color: #fff !important; /* Белый цвет текста */
+  margin: 8px 0;
   font-size: 14px;
-  line-height: 1.45;
-  padding-left: 8px;
 }
 
-/* подсветка кода рынков */
-code {
+.info-sect p code {
   background: #2b2b2b;
-  padding: 2px 5px;
+  padding: 2px 6px;
   border-radius: 4px;
   font-family: 'Courier New', Courier, monospace;
   font-size: 13px;
   color: #ffd54f;
+  margin-right: 5px;
+}
+
+.info-sect p strong {
+  color: #ffd54f;
+  font-weight: bold;
+}
+
+.info-sect h3 {
+  font-size: 16px;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+/* Таблица легенды - смещаем к центру */
+.legend-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 50px; /* Отступы слева и справа для центрирования */
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  min-height: 24px;
+}
+
+/* Коды - центрируем */
+.legend-code {
+  width: 130px;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+  color: #ffd54f;
+  font-size: 13px;
+  background: #2b2b2b;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #3a3a3a;
+  text-align: center;
+  flex-shrink: 0;
+  margin-right: 20px; /* Отступ между кодом и описанием */
+}
+
+/* Описания - белый цвет */
+.legend-desc {
+  font-size: 13px;
+  line-height: 1.3;
+  flex: 1;
+}
+
+/* Информационное сообщение внизу */
+.info-note {
+  margin-top: 25px;
+  padding: 10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  text-align: center;
+}
+
+.note-icon {
+  font-size: 16px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.note-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.note-text {
+  font-size: 12px;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.note-email {
+  font-size: 12px;
+  color: #ffd54f !important; /* Желтый цвет как в модалке */
+  font-weight: bold;
+  line-height: 1.2;
+  text-align: center;
 }

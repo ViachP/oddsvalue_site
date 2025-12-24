@@ -10,7 +10,7 @@ import RenewModal from './Auth/RenewModal';
 import { PaymentModal } from './PaymentModal';
 import { useAuth } from './../contexts/AuthContext';
 import { useMobileDetection } from './../hooks/useMobileDetection';
-import MobileDropdown from './MobileDropdown'; // или правильный путь
+import MobileDropdown from './MobileDropdown'; 
 
 // стили
 import {
@@ -23,7 +23,6 @@ import {
   // МОБИЛЬНЫЕ СТИЛИ
   mobileTableStyle, mobileCellStyle, mobileTeamCellStyle, mobileButtonStyle,
   mobileCellStyleEnhanced, mobileTeamCellStyleEnhanced, mobileTableContainerStyle,
-  // mobileVerticalHeaderStyle,verticalHeaderStyle, leagueHeaderStyle, checkboxDropdownWideStyle, 
 } from './MatchList.styles';
 
 interface Props {
@@ -39,40 +38,25 @@ interface DropdownItem {
 export default function MatchList({ activeModal, setActiveModal }: Props) { 
   const isMobile = useMobileDetection();
   const isVerySmallScreen = isMobile && (typeof window !== 'undefined' && window.innerWidth < 400);
-  // const isIOS = typeof window !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent);
-
-  const [isIOS, setIsIOS] = useState(false);
+  // const [isIOS, setIsIOS] = useState(false);
   
-  // Динамические стили в зависимости от устройства
   const currentButtonStyle = isMobile ? mobileButtonStyle : resetButtonStyle;
-  // const currentVerticalHeaderStyle = isMobile ? mobileVerticalHeaderStyle : verticalHeaderStyle;
-  // const currentVerticalHeaderStyle = isMobile 
-  // ? { 
-  //     ...mobileVerticalHeaderStyle,
-  //     backgroundColor: '#34495e', // Темный фон для заголовков
-  //     color: 'white',
-  //     border: '1px solid #444'
-  //   }
-  // : verticalHeaderStyle;
 
   const stickyHeaderStyle = isMobile
   ? {
       ...stickyHeaderRowStyle,
-      backgroundColor: '#2c3e50', // Темный фон для sticky заголовка  #34495e
+      backgroundColor: '#2c3e50',
       color: 'white'
     }
   : stickyHeaderRowStyle;
 
-  // const containerStyle = isMobile 
-  //   ? { ...tableContainerStyle, ...mobileTableContainerStyle }
-  //   : tableContainerStyle;
-
   const containerStyle = isMobile 
-    ? { ...tableContainerStyle, 
-      ...mobileTableContainerStyle,
-      overflowX: 'auto' as const, // Оставляем скролл
-      width: '100%', 
-    }
+    ? { 
+        ...tableContainerStyle, 
+        ...mobileTableContainerStyle,
+        overflowX: 'auto' as const,
+        width: '100%', 
+      }
     : { 
         ...tableContainerStyle,
         overflowX: 'hidden' as const, 
@@ -87,10 +71,10 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
       backgroundColor: '#2c3e50',
       color: 'white',
       border: '1px solid #444',
-      padding: isMobile ? '3px 1px' : '10px 1px', // Было и оставляем
-      fontSize: isMobile ? '10px' : '12px', // Возвращаем 12px
+      padding: isMobile ? '3px 1px' : '10px 1px',
+      fontSize: isMobile ? '10px' : '12px',
       fontWeight: 'bold',
-      minWidth: isMobile ? '30px' : '45px', // Добавили минимальную ширину
+      minWidth: isMobile ? '30px' : '45px',
       whiteSpace: 'nowrap' as const,
   };
   
@@ -103,61 +87,52 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
 
   const { user } = useAuth();
 
-  const hasAccess = user && (
+  const hasAccess = Boolean(user && (
     user.role === 'admin' ||
     (user.role === 'user' && user.expiresAt && new Date(user.expiresAt) > new Date())
-  );
-
-  // const isExpired = user && !hasAccess;
+  ));
 
   /* ----------  состояния  ---------- */
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<string[]>([]);
-  const [allMatchesCache, setAllMatchesCache] = useState<Match[]>([]); // ПРОСТО ПУСТОЙ МАССИВ
-  // const [allMatchesCache, setAllMatchesCache] = useState<Match[]>(() => {
-  //   // Для мобильных устройств не используем кэш
-  //   if (isMobile || isIOS || typeof window === 'undefined') return [];
-
-  //   // Для гостей на ПК тоже не используем кэш
-  //   if (!user || !hasAccess) return [];
-    
-  //   try {
-  //     const cached = localStorage.getItem('matchesCache');
-  //     const parsed = cached ? JSON.parse(cached) : [];
-  //     return Array.isArray(parsed) ? parsed : [];
-  //   } catch { return []; }
-  // });
+  const [allMatchesCache, setAllMatchesCache] = useState<Match[]>([]);
   const [highlight, setHighlight] = useState<null | 'home' | 'draw' | 'away'>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  // const [isLoading, setIsLoading] = useState(false);
+
+  const [showFullScreenLoader, setShowFullScreenLoader] = useState(false); // Начинаем с false
+
+   // Отслеживаем, был ли пользователь изменен (регистрация)
+  const prevUserEmail = useRef<string | undefined>(undefined);
+  const prevHasAccessRef = useRef<boolean>(false); // Добавляем ref для предыдущего доступа
 
   type MobileDropdownType = 'leagues' | 'one_o' | 'x_o'| 'two_o' | 'bts_result' | 'total_goals';
 
   const [mobileDropdown, setMobileDropdown] = useState<{
     isOpen: boolean;
     type: MobileDropdownType;
-    // title: string;
     position: { top: number; left: number; width: number } | null;
   }>({
     isOpen: false,
     type: 'leagues',
-    // title: '',
     position: null
   });
 
-  // Реф для получения актуального значения mobileDropdown
-  const mobileDropdownRef = useRef(mobileDropdown);
+  const mobileDropdownRef = useRef({
+    isOpen: false,
+    type: 'leagues' as MobileDropdownType,
+    position: null as { top: number; left: number; width: number } | null
+  });
 
-  // Эффект для обновления рефа при изменении состояния
   useEffect(() => {
     mobileDropdownRef.current = mobileDropdown;
   }, [mobileDropdown]);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const isIOSDevice = /iPhone|iPad|iPod/.test(navigator.userAgent);
-      setIsIOS(isIOSDevice);
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (typeof window !== 'undefined') {
+  //     const isIOSDevice = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  //     setIsIOS(isIOSDevice);
+  //   }
+  // }, []);
 
   /* ----------  фильтры  ---------- */
   const [selectedLeagues, setSelectedLeagues] = useState<string[]>([]);
@@ -211,30 +186,6 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
     setActiveModal('payment');
   };
 
-  // Функция открытия дропдауна
-  const openMobileDropdown = (
-    type: MobileDropdownType,
-    buttonElement: HTMLElement
-  ) => {
-    const rect = buttonElement.getBoundingClientRect();
-    
-    setMobileDropdown({
-      isOpen: true,
-      type,
-      position: {
-        top: rect.bottom + window.scrollY + 5,
-        left: rect.left + window.scrollX,
-        width: rect.width
-      }
-    });
-  };
-
-  // Функция закрытия дропдауна
-  const closeMobileDropdown = () => {
-    setMobileDropdown(prev => ({ ...prev, isOpen: false }));
-  };
-
-  // Функция получения элементов для дропдауна
   const getMobileDropdownItems = (): DropdownItem[] => {
     const { type } = mobileDropdown;
     
@@ -275,7 +226,6 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
     }
   };
 
-  // Функция получения выбранных значений
   const getMobileSelectedValues = (): string[] => {
     const { type } = mobileDropdown;
     
@@ -290,7 +240,6 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
     }
   };
 
-  // Обработчик выбора в дропдауне
   const handleMobileSelect = (value: string) => {
     const { type } = mobileDropdown;
     
@@ -313,12 +262,42 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
       case 'total_goals':
         handleCheckboxChange('total_goals', value);
         break;
-      
     }
   };
 
+  const openMobileDropdown = (
+    type: MobileDropdownType,
+    buttonElement: HTMLElement
+  ) => {
+    const rect = buttonElement.getBoundingClientRect();
+    
+    const newState = {
+      isOpen: true,
+      type,
+      position: {
+        top: rect.bottom + 5,
+        left: rect.left,
+        width: rect.width
+      }
+    };
+    
+    // Сначала обновляем ref
+    mobileDropdownRef.current = newState;
+    // Потом state
+    setMobileDropdown(newState);
+  };
+
+  const closeMobileDropdown = () => {
+    // Обновляем state
+    setMobileDropdown(prev => ({ ...prev, isOpen: false }));
+  };
+
   const handleFilterClick = (filterKey: string, event?: React.MouseEvent) => {
-    // Для мобильных устройств открываем кастомный dropdown
+    console.log('=== CLICK START ===');
+    console.log('Filter clicked:', filterKey);
+    console.log('Current dropdown state:', mobileDropdown);
+    console.log('MobileDropdownRef:', mobileDropdownRef.current);
+
     if (isMobile && event) {
       const mobileMapping: Record<string, MobileDropdownType> = {
         leagues: 'leagues',
@@ -330,23 +309,34 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
       };
       
       const mobileType = mobileMapping[filterKey];
+      console.log('Mapped mobile type:', mobileType);
+
       if (mobileType) {
         event.stopPropagation();
-        event.preventDefault(); // ← ВАЖНО: добавляем preventDefault
+        event.preventDefault();
+
+        console.log('Should close?', {
+          isOpen: mobileDropdown.isOpen,
+          refIsOpen: mobileDropdownRef.current.isOpen,
+          currentType: mobileDropdown.type,
+          refType: mobileDropdownRef.current.type,
+          mobileType: mobileType,
+          condition1: mobileDropdown.isOpen && mobileDropdown.type === mobileType,
+          condition2: mobileDropdownRef.current.isOpen && mobileDropdownRef.current.type === mobileType
+        });
         
-        // ТОЧНОЕ СРАВНЕНИЕ: если уже открыт тот же тип - закрываем
-        if (mobileDropdown.isOpen && mobileDropdown.type === mobileType) {
+        if (mobileDropdownRef.current.isOpen && mobileDropdownRef.current.type === mobileType) {
+          console.log('CLOSING DROPDOWN');
           closeMobileDropdown();
-          return; // ← ВАЖНО: выходим сразу
+          console.log('=== CLICK END (closed) ===');
+          return;
         }
-        
-        // Иначе открываем новый
+        console.log('OPENING DROPDOWN');
         openMobileDropdown(mobileType, event.currentTarget as HTMLElement);
         return;
       }
     }
 
-    // Оригинальный код для десктопа
     const mapping: Record<string, React.Dispatch<React.SetStateAction<boolean>>> = {
       leagues: setShowLeaguesCheckboxes,
       one_o: setShowOneOCheckboxes,
@@ -371,7 +361,7 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
     
     const setter = mapping[filterKey];
     if (setter) {
-      setter(prev => !prev); // Просто инвертируем состояние
+      setter(prev => !prev);
     }
   };
 
@@ -410,8 +400,6 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
 
   /* ----------  функции  ---------- */
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // if (!checkAccess()) return;
-  
     const term = e.target.value;
     setSearchTerm(term);
     
@@ -420,27 +408,18 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
         t.toLowerCase().includes(term.toLowerCase())
       );
       setSearchResults(results);
-      
-      // На мобильных открываем дропдаун если есть результаты
-      // if (isMobile && results.length > 0) {
-      //   openMobileDropdown('teams', e.target);
-      // }
     } else {
       setSearchResults([]);
     }
   };
 
   const handleTeamSelect = (teamName: string) => {
-    // if (!checkAccess()) return;
-    
     setSelectedTeam([teamName]);
     setSearchTerm(teamName);
     setSearchResults([]);
   };
 
   const handleCheckboxChange = (filterType: string, value: string) => {
-    // if (!checkAccess()) return;
-
     const setters: { [key: string]: React.Dispatch<React.SetStateAction<string[]>> } = {
       leagues: setSelectedLeagues,
       one_o: setSelectedOneOs,
@@ -564,22 +543,11 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
       return selectedValues.join(', ');
     };
 
-    // const getDropdownStyle = () => {
-    //   if (filterType === 'leagues') return checkboxDropdownStyle; // checkboxDropdownWideStyle
-    //   if (filterType === 'total_goals') return { ...checkboxDropdownStyle, minWidth: '100px' };
-    //   return checkboxDropdownStyle;
-    // };
-
-    // const getDropdownStyle = () => {
-    //   return checkboxDropdownStyle;
-    // };
-
     const getDropdownStyle = () => {
-      // Для total_goals делаем выпадающий список шире
       if (filterType === 'total_goals') {
         return { 
           ...checkboxDropdownStyle,
-          minWidth: '120px', // или нужная ширина
+          minWidth: '100px',
           width: 'auto',
           left: 0,
           right: 0
@@ -587,7 +555,7 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
       }
       return checkboxDropdownStyle;
     };
-
+   
     return (
       <div style={{ ...filterItemStyle, 
         ...(filterType === 'leagues' && { minWidth:  isMobile ? '80px' : '250px',
@@ -599,7 +567,7 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
             onClick={(e) => handleFilterClick(filterType, e)}
             style={selectWithDropdownStyle}
             title={getTitle()}
-            data-filter-button="true" // ← ВАЖНО!
+            data-filter-button="true"
           >
             {getDisplayText()}
           </button>
@@ -675,137 +643,188 @@ export default function MatchList({ activeModal, setActiveModal }: Props) {
     showBtsResultCheckboxes, showTotalGoalsCheckboxes
   ]);
 
-  // Функция загрузки матчей
-  const fetchMatches = async () => {
-    setIsLoading(true);
+  // const getLoadLimit = () => {
+  //   if (isMobile || isIOS) return 20;
+  //   if (!user || !hasAccess) return 20;
+  //   return 99999; // Без лимита для залогиненных на ПК
+  // };
+
+  // 2. useEffect для отслеживания изменения доступа
+  useEffect(() => {
+    console.log('User access changed:', {
+      prevEmail: prevUserEmail.current, // ← ТЕПЕРЬ ИСПОЛЬЗУЕТСЯ!
+      currentEmail: user?.email,
+      prevAccess: prevHasAccessRef.current,
+      currentAccess: hasAccess
+    });
+    
+    // Показываем лоадер если пользователь получил доступ (гость → зарегистрированный)
+    if (!prevHasAccessRef.current && hasAccess) {
+      console.log('User gained access, showing full loader');
+      setShowFullScreenLoader(true);
+      setAllMatchesCache([]); // Очищаем гостевые данные
+    }
+    
+    // Обновляем ref с текущим состоянием
+    prevUserEmail.current = user?.email; // ← ТЕПЕРЬ ИСПОЛЬЗУЕТСЯ!
+    prevHasAccessRef.current = hasAccess;
+  }, [user, hasAccess]); // Зависим от user и hasAccess
+
+  // 3. ПРОСТАЯ функция загрузки ВСЕХ матчей (без useCallback!)
+  const fetchAllMatches = async (): Promise<Match[]> => {
     try {
-      const params = new URLSearchParams();
-
-      // ВСЕГДА добавляем лимит для теста
-      params.append('limit', '20');
-      console.log('🔄 SENDING limit=20 to API');
-      // Добавляем лимит если указан
-      // if (limit !== undefined) {
-      //   params.append('limit', limit.toString());
-      // }
+      console.log('🚀 Starting full data load...');
+      const startTime = Date.now();
       
-      // Фильтры по команде
-      if (selectedTeam.length) {
-        params.append('team', selectedTeam[0]);
-        const loc = [];
-        if (showHome) loc.push('home');
-        if (showAway) loc.push('away');
-        if (loc.length) params.append('location', loc.join(','));
-      }
-
-      console.log('Fetching matches with params:', params.toString()); // Для отладки
-      console.log('🌐 Full URL:', `${API_BASE_URL}/api/matches/?${params}`);
-
-      // const { data } = await axios.get<Match[]>(
-      //   `${API_BASE_URL}/api/matches/?${params}`,
-      //   { timeout: 15000 }
-      // );
-
       const { data } = await axios.get<{ results: Match[] }>(
-        `${API_BASE_URL}/api/matches/?${params}`,
-        { timeout: 15000 }
+        `${API_BASE_URL}/api/matches/?limit=99999`,
+        { timeout: 45000 }
       );
       
-      console.log('Received matches:', data?.results?.length); // Для отладки
-      return data.results;
-    } catch (error) {
-      console.error('Error fetching matches:', error);
-      return [];
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Определяем лимит загрузки
-  const getLoadLimit = () => {
-    // ДЛЯ ТЕСТА: ВСЕГДА 20 матчей
-    return 20;
-    // Для мобильных всегда 20 матчей
-    // if (isMobile || isIOS) return 20;
-    
-    // // Для гостей (незалогиненных) всегда 20 матчей
-    // if (!user || !hasAccess) return 20;
-    
-    // // Для залогиненных на ПК - без лимита
-    // return undefined;
-  };
-
-  // Загрузка данных при монтировании
-useEffect(() => {
-  const loadMatches = async () => {
-    // Всегда очищаем кэш для мобильных и iOS
-    if (isMobile || isIOS) {
-      try {
-        localStorage.removeItem('matchesCache');
-        localStorage.removeItem('cacheTimestamp');
-      } catch (e) {}
-    }
-    
-    // Получаем лимит
-    const limit = getLoadLimit();
-    
-    // Загружаем данные
-    const data = await fetchMatches();
-    
-    if (data && Array.isArray(data)) {
-      setAllMatchesCache(data);
+      const endTime = Date.now();
+      console.log(`✅ Full data loaded in ${endTime - startTime}ms: ${data?.results?.length || 0} matches`);
       
-      // Кэшируем только если ПК, залогинен и БЕЗ лимита
-      if (!limit && user && hasAccess && !isMobile && !isIOS) {
-        try {
-          localStorage.setItem('matchesCache', JSON.stringify(data));
-          localStorage.setItem('cacheTimestamp', Date.now().toString());
-        } catch (error) {
-          console.warn('Storage caching error:', error);
-        }
-      }
+      return data.results || [];
+    } catch (error) {
+      console.error('❌ Error fetching all matches:', error);
+      return [];
     }
   };
-  
-  // Загружаем только если нет данных
-  if (allMatchesCache.length === 0) {
-    loadMatches();
-  }
-}, [user, hasAccess, isMobile, isIOS]); // Убрать allMatchesCache.length из зависимостей
 
-  // Автоматическая загрузка полной базы после регистрации
+  // 4. ПРОСТАЯ функция загрузки гостевых матчей
+  const fetchGuestMatches = async (): Promise<Match[]> => {
+    try {
+      const { data } = await axios.get<{ results: Match[] }>(
+        `${API_BASE_URL}/api/matches/?limit=20`,
+        { timeout: 15000 }
+      );
+      return data.results || [];
+    } catch (error) {
+      console.error('Error fetching guest matches:', error);
+      return [];
+    }
+  };
+
+  // 5. ЕДИНЫЙ useEffect для загрузки данных
   useEffect(() => {
-    const loadFullDatabaseAfterLogin = async () => {
-      // Если пользователь только что залогинился, это ПК и сейчас отображается только 20 матчей
-      if (user && hasAccess && !isMobile && allMatchesCache.length <= 20) {
-        const fullData = await fetchMatches(); // Без лимита
-        
-        if (fullData.length > 0) {
-          setAllMatchesCache(fullData);
-          
-          // Сохраняем в кэш
-          try {
-            localStorage.setItem('matchesCache', JSON.stringify(fullData));
-            localStorage.setItem('cacheTimestamp', Date.now().toString());
-          } catch (error) {
-            console.error('Failed to cache full database:', error);
-          }
-          
-          // Можно показать уведомление
-          console.log(`Full database loaded: ${fullData.length} matches`);
-        }
+    const loadData = async () => {
+      // Сценарий 1: Загрузка полных данных для зарегистрированных
+      if (showFullScreenLoader) {
+        const data = await fetchAllMatches();
+        setAllMatchesCache(data);
+        setShowFullScreenLoader(false);
+      }
+      // Сценарий 2: Первоначальная загрузка для гостей
+      else if (!hasAccess && allMatchesCache.length === 0) {
+        console.log('Loading initial 20 matches for guest');
+        const data = await fetchGuestMatches();
+        setAllMatchesCache(data);
+      }
+      // Сценарий 3: Если пользователь вышел (зарегистрированный → гость)
+      else if (!hasAccess && allMatchesCache.length > 20) {
+        console.log('User logged out, switching to guest view');
+        const data = await fetchGuestMatches();
+        setAllMatchesCache(data);
       }
     };
     
-    loadFullDatabaseAfterLogin();
-  }, [user, hasAccess, isMobile, allMatchesCache.length]);
+    loadData();
+  }, [showFullScreenLoader, hasAccess, allMatchesCache.length]);
+  // НЕТ fetchMatches в зависимостях!
 
+  // 6. Функция для поиска матчей по команде (отдельно, по требованию)
+  // const searchMatchesByTeam = async (teamName: string, isHome: boolean, isAway: boolean): Promise<Match[]> => {
+  //   try {
+  //     const params = new URLSearchParams();
+  //     params.append('limit', '99999');
+  //     params.append('team', teamName);
+      
+  //     const loc = [];
+  //     if (isHome) loc.push('home');
+  //     if (isAway) loc.push('away');
+  //     if (loc.length) params.append('location', loc.join(','));
+      
+  //     const { data } = await axios.get<{ results: Match[] }>(
+  //       `${API_BASE_URL}/api/matches/?${params}`,
+  //       { timeout: 30000 }
+  //     );
+      
+  //     return data.results || [];
+  //   } catch (error) {
+  //     console.error('Error searching matches:', error);
+  //     return [];
+  //   }
+  // };
+  
   /* ----------  рендер  ---------- */
   const topBlockRef = useRef<HTMLDivElement>(null);
 
   const formatOdds = (value: number | null | undefined): string => {
     return (value || 0).toFixed(2);
   };
+
+  if (showFullScreenLoader) {
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 9999,
+        backgroundImage: 'url(/screen.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}>
+        
+        {/* Затемнение */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        }} />
+        
+        {/* Лоадер */}
+        <div style={{
+          position: 'relative',
+          zIndex: 1,
+          textAlign: 'center',
+        }}>
+          <div style={{
+            width: '50px',
+            height: '50px',
+            border: '5px solid #f3f3f3',
+            borderTop: '5px solid #3498db',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 15px',
+          }} />
+          <div style={{ 
+            color: 'white', 
+            fontSize: '18px',
+            fontWeight: 'bold',
+          }}>
+            Loading data ...
+          </div>
+        </div>
+        
+        <style>
+          {`
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}
+        </style>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: isMobile ? '3px' : '10px' }}>
@@ -817,7 +836,6 @@ useEffect(() => {
               ? 'repeat(4, 1fr)'
               : 'repeat(auto-fit, minmax(100px, 1fr))',
             gap: isMobile ? '3px' : '10px',
-            // marginBottom: isMobile ? '5px' : '5px',
             backgroundColor: '#333',
             borderRadius: '8px',
             padding: isMobile ? '3px' : '10px',
@@ -1030,14 +1048,13 @@ useEffect(() => {
         
        <div style={isMobile ? {
             ...filtersContainerStyle,
-            maxHeight: '180px', // ← Ограничиваем высоту
-            overflowY: 'auto', // ← Вертикальный скролл
+            maxHeight: '180px',
+            overflowY: 'auto',
             margin: '0 3px',
             padding: isVerySmallScreen ? '5px' : '12px'
           } : filtersContainerStyle}>
           
           {isMobile ? (
-            /* МОБИЛЬНАЯ ВЕРСИЯ - 3 РЯДА */
             <div style={{
               display: 'flex',
               flexDirection: 'column',
@@ -1047,7 +1064,6 @@ useEffect(() => {
               
               {/* РЯД 1: League, Home, Away */}
               <div style={{ display: 'flex', gap: '8px', width: '100%', alignItems: 'center' }}>
-                {/* League (шире) */}
                 <div style={{ flex: 1.3, minWidth: '80px' }}>
                   {renderCheckboxFilter(
                     'League',
@@ -1059,7 +1075,6 @@ useEffect(() => {
                   )}
                 </div>
                 
-                {/* Home/Away (компактнее) */}
                 <div style={{ flex: 1, minWidth: '100px', marginTop: '16px' }}>
                   <div style={{ 
                     display: 'flex', 
@@ -1071,7 +1086,6 @@ useEffect(() => {
                         type="checkbox" 
                         checked={showHome} 
                         onChange={() => {
-                          // if (!checkAccess()) return;
                           setShowHome((v) => !v);
                         }} 
                         style={{ marginRight: '5px' }}
@@ -1083,7 +1097,6 @@ useEffect(() => {
                         type="checkbox" 
                         checked={showAway} 
                         onChange={() => {
-                          // if (!checkAccess()) return;
                           setShowAway((v) => !v);
                         }} 
                         style={{ marginRight: '5px' }}
@@ -1096,17 +1109,14 @@ useEffect(() => {
               
               {/* РЯД 2: 1_o, x_o, 2_o */}
               <div style={{ display: 'flex', width: '100%', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px'}}>
-                {/* 1_o */}
                 <div style={{ flex: 1, minWidth: '40px'}}>
                   {renderCheckboxFilter('1_o', selectedOneOs, getUniqueOneOs(), 'one_o', showOneOCheckboxes, 'one-o-filter')}
                 </div>
 
-                {/* X_o - НОВЫЙ ФИЛЬТР */}
                 <div style={{ flex: 1, minWidth: '40px' }}>
                   {renderCheckboxFilter('X_o', selectedXOs, getUniqueXOs(), 'x_o', showXOCheckboxes, 'x-o-filter')}
                 </div>
                 
-                {/* 2_o */}
                 <div style={{ flex: 1, minWidth: '40px' }}>
                   {renderCheckboxFilter('2_o', selectedTwoOs, getUniqueTwoOs(), 'two_o', showTwoOCheckboxes, 'two-o-filter')}
                 </div>
@@ -1114,17 +1124,14 @@ useEffect(() => {
               
               {/* РЯД 3: BTS, Total, Reset */}
               <div style={{ display: 'flex', gap: '6px', width: '100%', alignItems: 'flex-end'}}>
-                {/* BTS */}
                 <div style={{ flex: 1, minWidth: '80px' }}>
                   {renderCheckboxFilter('BTS', selectedBtsResult, ['Yes', 'No'], 'bts_result', showBtsResultCheckboxes, 'bts-result-filter')}
                 </div>
                 
-                {/* Total */}
                 <div style={{ flex: 1, minWidth: '80px' }}>
                   {renderCheckboxFilter('Total', selectedTotalGoals, ['Over 1.5', 'Under 1.5', 'Over 2.5', 'Under 2.5', 'Over 3.5', 'Under 3.5'], 'total_goals', showTotalGoalsCheckboxes, 'total-goals-filter')}
                 </div>
                 
-                {/* Reset */}
                 <div style={{ flex: 0, minWidth: '60px' }}>
                   <button onClick={handleResetFilters} 
                           style={{
@@ -1143,7 +1150,6 @@ useEffect(() => {
               
             </div>
           ) : (
-            /* ДЕСКТОПНАЯ ВЕРСИЯ (оставляем как было) */
             <div style={filtersRowStyle} className="filters-row">
               {/* League */}
               {renderCheckboxFilter(
@@ -1167,7 +1173,6 @@ useEffect(() => {
                   style={inputStyle}
                   autoComplete="off"
                 />
-                {/* ДОБАВИЛИ ЭТОТ БЛОК: */}
                 {searchResults.length > 0 && searchTerm.length > 1 && (
                   <ul style={searchResultsStyle}>
                     {searchResults.map((team) => (
@@ -1217,7 +1222,6 @@ useEffect(() => {
                 </div>
               </div>
 
-              {/* Все остальные фильтры для десктопа */}
               {renderCheckboxFilter('1_o', selectedOneOs, getUniqueOneOs(), 'one_o', showOneOCheckboxes, 'one-o-filter')}
               {renderCheckboxFilter('1_e', selectedOneEs, getUniqueOneEs(), 'one_e', showOneEsCheckboxes, 'one-e-filter')}
               {renderCheckboxFilter('X_o', selectedXOs, getUniqueXOs(), 'x_o', showXOCheckboxes, 'x-o-filter')}
@@ -1346,21 +1350,7 @@ useEffect(() => {
           marginTop: '5px',
           fontWeight: 'bold',
         }}>
-          {isLoading ? (
-            <div style={{ 
-              color: 'white', 
-              padding: '10px', 
-              textAlign: 'center' 
-            }}>
-              Loading data...
-            </div>
-          ) : (
-            <div style={{ color: 'white' }}>
-              {allMatchesCache.length === 0 &&'No data to display'}
-            </div>
-          )}
           
-          {/* Сообщение для мобильных */}
           {isMobile && allMatchesCache.length > 0 && (
             <div style={{
               fontSize: '12px',
@@ -1370,16 +1360,14 @@ useEffect(() => {
               backgroundColor: '#2c3e50',
               borderRadius: '3px'
             }}>
-              ⚠️ For full access to our database of 13,000+ matches and advanced filters, please visit the site from a PC.
+              ⚠️ For full access to our database of 14,000+ matches and advanced filters, please visit the site from a PC.
             </div>
           )}
           
-          {/* Сообщение для гостей на ПК */}
           {!isMobile && (!user || !hasAccess) && allMatchesCache.length > 0 && (
             <div style={{
               fontSize: '13px',
               color: 'white',
-              // marginTop: '5px',
               padding: '5px',
               backgroundColor: '#2c3e50',
               borderRadius: '3px'
@@ -1389,22 +1377,15 @@ useEffect(() => {
                 href="#" 
                 onClick={(e) => {
                   e.preventDefault();
-                  setActiveModal('access');
+                  setActiveModal('login');
                 }}
                 style={{ color: '#3498db', textDecoration: 'underline', marginLeft: '5px' }}
               >
                 Register
-              </a> to access the entire database (13,000+ matches)
+              </a> to access the entire database (14,000+ matches)
             </div>
           )}
         </div>
-        {/* {isMobile && (
-          <style>{`
-            table td {
-              color: white !important;
-            }
-          `}</style>
-        )} */}
       </div>
       <AccessModal
         isOpen={activeModal === 'access'}
@@ -1432,7 +1413,6 @@ useEffect(() => {
       <MobileDropdown
         isOpen={mobileDropdown.isOpen}
         onClose={closeMobileDropdown}
-        // title={mobileDropdown.title}
         type={mobileDropdown.type}
         items={getMobileDropdownItems()}
         selectedValues={getMobileSelectedValues()}

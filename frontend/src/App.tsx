@@ -1,8 +1,9 @@
+
 // App.tsx
 import './App.css';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import DataLoader from './components/DataLoader';
-import MobileHeader from './components/MobileHeader'; // Новый компонент
+import MatchList from './components/MatchList';
+import MobileHeader from './components/MobileHeader';
 import Login from './components/Auth/Login';
 import InfoButton from './components/InfoButton';
 import PaymentButton from './components/PaymentButton';
@@ -22,8 +23,8 @@ function AppContent() {
       )}
 
       <main>
-        {/* Передаем активные модалки в DataLoader */}
-        <DataLoader activeModal={activeModal} setActiveModal={setActiveModal} />
+        {/* Основной контент - MatchList с передачей модальных пропсов */}
+        <MatchList activeModal={activeModal} setActiveModal={setActiveModal} />
 
         {/* Десктопные кнопки (только для не-мобильных) */}
         {!isMobile && (

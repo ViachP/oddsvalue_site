@@ -119,10 +119,14 @@ button:focus-visible {
   outline-offset: 2px !important;
 }
 
+.reset-button {
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
 .reset-button:hover {
-  background-color: #0056b3;
-  transform: translateY(-2px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  background-color: #0056b3 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
 }
 
 /* ==================== */

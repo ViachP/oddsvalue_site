@@ -1,3 +1,5 @@
+from django.http import JsonResponse
+
 # backend/users/middleware.py
 class TrialAccessMiddleware:
     def __init__(self, get_response):
