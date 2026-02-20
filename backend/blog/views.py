@@ -1,14 +1,29 @@
-from django.shortcuts import render, get_object_or_404
-from .models import Article
+from django.shortcuts import render
 
 def article_detail(request, slug):
-    article = get_object_or_404(Article, slug=slug, published=True)
+    """
+    Рендерит статические шаблоны статей.
+    Все шаблоны содержат полный HTML, данные из БД не нужны.
+    """
     
+    # Определяем язык по URL пути
+    current_path = request.path
+    
+    if current_path.startswith('/en/'):
+        template = 'blog/article_detail_en.html'
+        canonical_url = f"https://oddsvalue.pro/en/{slug}/"
+    elif current_path.startswith('/de/'):
+        template = 'blog/article_detail_de.html'
+        canonical_url = f"https://oddsvalue.pro/de/{slug}/"
+    else:
+        # Русская версия по умолчанию
+        template = 'blog/article_detail.html'
+        canonical_url = f"https://oddsvalue.pro/blog/{slug}/"
+
+    # Минимальный контекст - только canonical URL для hreflang
     context = {
-        'article': article,
-        'title': article.meta_title or article.title,
-        'meta_description': article.meta_description,
-        'canonical_url': f"https://oddsvalue.pro/blog/{slug}/",
+        'canonical_url': canonical_url,
     }
-    
-    return render(request, 'blog/article_detail.html', context)
+
+    return render(request, template, context)
+

@@ -1,0 +1,515 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Value Betting - Mathematics Instead of Guessing | Oddsvalue.pro</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="author" content="Oddsvalue.pro">
+    <meta name="copyright" content="Oddsvalue.pro">
+    <meta name="theme-color" content="#12151c">
+    
+    <meta name="googlebot" content="index, follow">
+    <meta name="yandex" content="index, follow">
+    <meta name="bingbot" content="index, follow">
+    
+    <!-- Primary SEO -->
+    <meta name="description" content="Value Betting - mathematical strategy for long-term profit in sports betting. Learn how to find overvalued odds from bookmakers and earn money using historical data statistics.">
+    
+    <meta name="keywords" content="value betting, value bets, sports betting strategy, how to earn on betting, betting mathematics, sports betting, bookmaker odds, ROI, betting analysis, profitable bets, bankroll management">
+    
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Value Betting - Mathematics Instead of Guessing">
+    <meta property="og:description" content="Learn how to find overvalued odds and earn money on betting using mathematics and historical data statistics.">
+    <meta property="og:image" content="https://oddsvalue.pro/static/blog/og-image-en.png">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://oddsvalue.pro/en/blog/what-is-value-betting/">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Value Betting - Mathematics Instead of Guessing">
+    <meta name="twitter:description" content="Mathematical approach to sports betting: how to find overvalued odds and get profit long-term.">
+    <meta name="twitter:image" content="https://oddsvalue.pro/static/blog/og-image-en.png">
+    
+    <!-- Canonical -->
+    <link rel="canonical" href="https://oddsvalue.pro/en/blog/what-is-value-betting/">
+    
+    <!-- Hreflang for multilingual content -->
+    <link rel="alternate" hreflang="ru" href="https://oddsvalue.pro/blog/chto-takoe-valuynaya-stavka/">
+    <link rel="alternate" hreflang="en" href="https://oddsvalue.pro/en/blog/what-is-value-betting/">
+    <link rel="alternate" hreflang="de" href="https://oddsvalue.pro/de/was-ist-value-betting/">
+    <link rel="alternate" hreflang="x-default" href="https://oddsvalue.pro/en/blog/what-is-value-betting/">
+    
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Value Betting - Mathematics Instead of Guessing",
+    "description": "Complete guide to value betting strategy for earning money on sports betting",
+    "image": "https://oddsvalue.pro/static/blog/juve-en.png",
+    "author": {
+        "@type": "Organization",
+        "name": "Oddsvalue.pro",
+        "url": "https://oddsvalue.pro"
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Oddsvalue.pro",
+        "logo": {
+        "@type": "ImageObject",
+        "url": "https://oddsvalue.pro/static/logo.png"
+        }
+    },
+    "datePublished": "2025-12-03",
+    "dateModified": "2025-12-03",
+    "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://oddsvalue.pro/en/blog/what-is-value-betting/"
+    },
+    "articleSection": "Betting Theory",
+    "keywords": "value betting, sports betting, betting strategy, mathematical betting",
+    "inLanguage": "en"
+    }
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background-color: #12151c;
+            color: #e0e0e0;
+            line-height: 1.7;
+            padding: 20px;
+            max-width: 1040px;
+            margin: 0 auto;
+            font-size: 16px;
+        }
+
+        .article-container {
+            background-color: #1a1d24;
+            border-radius: 8px;
+            padding: 40px 40px;
+            border: 1px solid #2a2e38;
+        }
+
+        /* Header - compact two-level */
+        .article-header {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .article-header h1 {
+            font-size: 2.5rem;
+            color: #fbbf24;
+            font-weight: 700;
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+
+        .article-header h2 {
+            font-size: 1.3rem;
+            color: #fff;
+            font-weight: 400;
+        }
+
+        h2 {
+            font-size: 1.6rem;
+            color: #ffffff;
+            margin-top: 2.5em;
+            margin-bottom: 1em;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #2a2e38;
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            color: #d1d5db;
+            margin-top: 2em;
+            margin-bottom: 1em;
+        }
+
+        p {
+            margin-bottom: 1.5em;
+            color: #c0c4cc;
+            font-size: 1.05rem;
+        }
+
+        .number {
+            color: #fbbf24;
+            font-weight: 600;
+            font-family: 'SF Mono', monospace;
+        }
+
+        .number.green {
+            color: #10b981;
+        }
+
+        .number.red {
+            color: #ef4444;
+        }
+
+        /* Info blocks */
+        .stats-box, .formula-box {
+            background-color: #1f232c;
+            border: 1px solid #2a2e38;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #2a2e38;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #9ca3af;
+        }
+
+        .stat-value {
+            color: #fbbf24;
+            font-weight: 600;
+        }
+
+        /* Lists */
+        ul, ol {
+            margin-left: 25px;
+            margin-bottom: 1.5em;
+            color: #c0c4cc;
+        }
+
+        li {
+            margin-bottom: 0.8em;
+            padding-left: 8px;
+        }
+
+        /* Screenshots */
+        .screenshot-container {
+            margin: 35px 0;
+            text-align: center;
+        }
+
+        .screenshot-container img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #2a2e38;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .caption {
+            color: #9ca3af;
+            font-size: 0.9em;
+            margin-top: 12px;
+            font-style: italic;
+        }
+
+        /* CTA Button */
+        .action-button-container {
+            text-align: center;
+            margin: 50px 0 40px;
+        }
+
+        .action-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            text-align: center;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+            min-width: 280px;
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+            background: linear-gradient(135deg, #1d4ed8, #2563eb);
+        }
+
+        /* Disclaimer */
+        .disclaimer {
+            background-color: #1f232c;
+            border: 1px solid #2a2e38;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 40px 0 30px;
+            font-size: 0.85em;
+            color: #9ca3af;
+        }
+
+        .disclaimer h4 {
+            color: #9ca3af;
+            font-size: 0.9em;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .disclaimer p {
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        /* Meta info */
+        .meta-info {
+            color: #9ca3af;
+            font-size: 0.9em;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #2a2e38;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        /* Footer */
+        .article-footer {
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.9em;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #2a2e38;
+        }
+
+        /* Language switcher */
+        .language-switcher {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+
+        .language-switcher a {
+            color: #60a5fa;
+            text-decoration: none;
+            font-size: 0.9em;
+            padding: 5px 10px;
+            border: 1px solid #374151;
+            border-radius: 4px;
+        }
+
+        .language-switcher a:hover {
+            background-color: #1f2937;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            
+            .article-container {
+                padding: 30px 25px;
+            }
+            
+            .article-header h1 {
+                font-size: 2rem;
+            }
+            
+            .article-header h2 {
+                font-size: 1.1rem;
+            }
+            
+            h2 {
+                font-size: 1.4rem;
+            }
+            
+            .meta-info {
+                flex-direction: column;
+                gap: 8px;
+                text-align: center;
+            }
+        }
+    </style>
+    
+    <!-- Breadcrumb structured data -->
+    <script type="application/ld+json">
+    {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://oddsvalue.pro/en/"
+        },
+        {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Blog",
+        "item": "https://oddsvalue.pro/en/blog"
+        },
+        {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Value Betting",
+        "item": "https://oddsvalue.pro/en/blog/what-is-value-betting/"
+        }
+    ]
+    }
+    </script>
+</head>
+<body>
+    <article class="article-container">
+        <!-- Meta info -->
+        <div class="meta-info">
+            <div class="date">December 3, 2025</div>
+            <div class="reading-time">8 min read</div>
+        </div>
+
+        <!-- Header -->
+        <header class="article-header">
+            <h1>Value Betting</h1>
+            <h2>Mathematics Instead of Guessing</h2>
+        </header>
+
+        <!-- Introduction -->
+        <p>A value bet is a wager on a sports event where the bookmaker offers an overvalued odds - meaning the probability of the event outcome according to your analysis is higher than reflected in the bookmaker's odds.</p>
+
+        <p>But let's be honest. How many of you can actually understand where the odds are overvalued and where they're not? Probably not many. So why guess when value betting trends can be tracked across thousands of already played matches?</p>
+        
+        <!-- Section 1 -->
+        <h2>How to Find a Value Bet?</h2>
+        
+        <p>Bookmakers consider many factors when setting odds: statistics, injuries, motivation. Their resources far exceed the capabilities of an ordinary bettor.</p>
+        
+        <p>Our approach is based on historical data analysis. The database contains thousands of matches played under the same odds offered today. We look for statistical patterns, not try to predict the future.</p>
+        
+        <p>The key point - we see trends. When under certain odds the same outcome regularly occurs, this is already a statistical pattern.</p>
+        
+        <!-- Section about favorites -->
+        <h2>The Trap of Clear Favorites</h2>
+        
+        <p><strong>Maybe you want to know</strong> how a clear favorite plays at home in England. A clear favorite is when the opening odds for the favorite are below <span class="number">1.25</span>. Everyone loves betting on clear favorites: Barcelona, Inter, PSG, Liverpool, Bayern.</p>
+        
+        <!-- Screenshot -->
+        <div class="screenshot-container">
+            <img src="/static/blog/england_roi.png" 
+                 alt="Statistics of clear favorites in England Premier League">
+            <p class="caption">Statistics of clear favorites (odds ≤ 1.25) in EPL over last 2 seasons</p>
+        </div>
+        
+        <p>And what do we see. The clear favorite won <span class="number">17</span> matches out of <span class="number">20</span>, but we would incur losses if we bet on them because the odds given for clear favorites are too low. And it's enough for them to not win just <span class="number red">3 times</span> and this nullifies all their <span class="number">17 wins</span>.</p>
+        
+        <p><strong>Conclusion:</strong> Even with 85% win rate, bets on such favorites are unprofitable due to low odds. This is a classic example where intuition fails and mathematics shows the real picture.</p>
+        
+        <!-- Section 3 -->
+        <h2>Total Goals Betting</h2>
+        
+        <p>We all love when many goals are scored in a match, and often bet on Over 2.5 goals. For example, let's take the most scoring league in Europe - Bundesliga, where on average <span class="number">3.19</span> goals are scored per match. Let's take opening odds for Over 2.5 in the range of <span class="number">1.60 - 1.69</span>. There were <span class="number">97</span> matches total, and we would get a profit of <span class="number green">1.98</span> times our stake.</p>
+        
+        <!-- Screenshot 1 -->
+        <div class="screenshot-container">
+            <img src="/static/blog/over_open.png" 
+                 alt="ROI statistics for Over 2.5 by opening odds in Bundesliga">
+            <p class="caption">ROI for Over 2.5 with opening odds 1.60 - 1.69 is <span class="number green">1.98</span></p>
+        </div>
+        
+        <p>But let's see what would happen if we bet on the same range, but by closing odds. There were <span class="number">58</span> such matches, and we would get a profit of <span class="number green">11.12</span> times our stake, which is 5.5 times more.</p>
+        
+        <!-- Screenshot 2 -->
+        <div class="screenshot-container">
+            <img src="/static/blog/over_close.png" 
+                 alt="ROI statistics for Over 2.5 by closing odds in Bundesliga">
+            <p class="caption">ROI for Over 2.5 with closing odds 1.60 - 1.69 is <span class="number green">11.12</span></p>
+        </div>
+        
+        <!-- Section 4 -->
+        <h2>Where to Find Value Betting Trends?</h2>
+
+        <p>Oddsvalue.pro service provides you with a database of <span class="number">14,000+</span> matches. This includes <span class="number">32</span> leagues and <span class="number">3</span> European cup tournaments. The database is updated every week.</p>
+        
+        <p>You can find value matches in markets such as:</p>
+        
+        <ul>
+            <li>Home team win (1)</li>
+            <li>Draw (X)</li>
+            <li>Away team win (2)</li>
+            <li>Both Teams to Score - Yes (BTS Yes)</li>
+            <li>Both Teams to Score - No (BTS No)</li>
+            <li>Over/Under 2.5 goals</li>
+            <li>First half team trends</li>
+        </ul>
+        
+        <!-- Section 5 -->
+        <h2>Bankroll Management</h2>
+        
+        <p>Proper bankroll management is critically important.</p>
+        
+        <div class="stats-box">
+            <div class="stat-row">
+                <div class="stat-label">Your bankroll</div>
+                <div class="stat-value">$1,000</div>
+            </div>
+            <div class="stat-row">
+                <div class="stat-label">Maximum bet (1%)</div>
+                <div class="stat-value">$10</div>
+            </div>
+            <div class="stat-row">
+                <div class="stat-label">10 consecutive losses</div>
+                <div class="stat-value">$100 (10% of bankroll)</div>
+            </div>
+            <div class="stat-row">
+                <div class="stat-label">Conclusion</div>
+                <div class="stat-value">Bankroll preserved</div>
+            </div>
+        </div>
+        
+        <p>Use the 1% rule of your bankroll per single bet. This allows you to withstand drawdowns without critical losses.</p>
+        
+        <!-- Conclusion -->
+        <h2>Conclusion</h2>
+        
+        <p>Value betting is a mathematically justified strategy for long-term earnings. Key principles:</p>
+        
+        <ol>
+            <li><strong>Distance matters more than single wins</strong> - statistics work on large samples</li>
+            <li><strong>Trust numbers, not intuition</strong> - emotions interfere with objective assessment</li>
+            <li><strong>Manage your bankroll</strong> - without proper money management any strategy loses</li>
+            <li><strong>Use historical data</strong> - past matches show future trends</li>
+        </ol>
+        
+        <!-- CTA Button -->
+        <div class="action-button-container">
+            <a href="https://oddsvalue.pro/" class="action-button">
+                Find Value Matches in Database
+            </a>
+        </div>
+        
+        <!-- Disclaimer -->
+        <div class="disclaimer">
+            <h4>Important Disclaimer!</h4>
+            <p>Information presented on Oddsvalue.pro is for educational and analytical purposes only. We do not provide financial advice and do not encourage betting. Any betting decisions are made at your own risk. Sports betting is entertainment with risk of money loss.</p>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="article-footer">
+            © 2025 Oddsvalue.pro. All rights reserved.
+        </footer>
+    </article>
+</body>
+</html>
